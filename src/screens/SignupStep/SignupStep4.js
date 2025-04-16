@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { checkEmailUniqueAndSendOtp } from '../../services/api';
 import globalStyles from '../../styles/globalStyles';
 
@@ -14,30 +15,44 @@ const SignupStep4 = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const validateInputs = async () => {
-    if (!email || !password || !confirmPassword) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
       setErrorMessage('All fields are required');
       return false;
     }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(trimmedEmail)) {
       setErrorMessage('Please enter a valid email address');
       return false;
     }
 
-    const result = await checkEmailUniqueAndSendOtp(email);
-    if (!result.success) {
-      setErrorMessage(result.message);
+    try {
+      const result = await checkEmailUniqueAndSendOtp(trimmedEmail);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('SignupStep4 checkEmailUniqueAndSendOtp error:', error);
+      setErrorMessage('Failed to validate email. Please try again.');
       return false;
     }
 
-    if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long');
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(trimmedPassword)) {
+      setErrorMessage('Password must be at least 8 characters, including an uppercase letter and a number');
       return false;
     }
-    if (password !== confirmPassword) {
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
       setErrorMessage('Passwords do not match');
       return false;
     }
+
     return true;
   };
 
@@ -46,15 +61,22 @@ const SignupStep4 = ({ navigation, route }) => {
     setIsLoading(true);
     try {
       if (!(await validateInputs())) {
-        setIsLoading(false);
         return;
       }
+      const trimmedData = { email: email.trim(), password: password.trim() };
+      console.log('SignupStep4: Navigating to SignupStep5 with data:', {
+        ...signupData,
+        ...trimmedData,
+      });
       navigation.navigate('SignupStep5', {
-        signupData: { ...signupData, email, password },
+        signupData: {
+          ...signupData,
+          ...trimmedData,
+        },
       });
     } catch (error) {
+      console.error('SignupStep4 handleNext error:', error);
       setErrorMessage('An error occurred. Please try again.');
-      console.error('SignupStep4 error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +109,7 @@ const SignupStep4 = ({ navigation, route }) => {
             ))}
           </View>
           <TextInput
-            style={[globalStyles.input, { color: globalStyles.COLORS.text }]} // Added text color
+            style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
             placeholder="Email Address"
             placeholderTextColor={globalStyles.COLORS.placeholder}
             keyboardType="email-address"
@@ -98,7 +120,7 @@ const SignupStep4 = ({ navigation, route }) => {
           />
           <View style={{ position: 'relative', width: '100%' }}>
             <TextInput
-              style={[globalStyles.input, { color: globalStyles.COLORS.text }]} // Added text color
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
               placeholder="Password"
               placeholderTextColor={globalStyles.COLORS.placeholder}
               secureTextEntry={!showPassword}
@@ -109,13 +131,18 @@ const SignupStep4 = ({ navigation, route }) => {
             <TouchableOpacity
               style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
             >
-              <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              <Icon
+                name={showPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={globalStyles.COLORS.placeholder}
+              />
             </TouchableOpacity>
           </View>
           <View style={{ position: 'relative', width: '100%' }}>
             <TextInput
-              style={[globalStyles.input, { color: globalStyles.COLORS.text }]} // Added text color
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
               placeholder="Confirm Password"
               placeholderTextColor={globalStyles.COLORS.placeholder}
               secureTextEntry={!showConfirmPassword}
@@ -126,8 +153,13 @@ const SignupStep4 = ({ navigation, route }) => {
             <TouchableOpacity
               style={styles.eyeIcon}
               onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              disabled={isLoading}
             >
-              <Text>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              <Icon
+                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={globalStyles.COLORS.placeholder}
+              />
             </TouchableOpacity>
           </View>
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}

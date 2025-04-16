@@ -1,3 +1,4 @@
+// screens/LoginScreen.js
 import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
@@ -35,14 +36,52 @@ const LoginScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const result = await loginUser(email, password);
-      if (result.success) {
-        navigation.replace('Home');
+      console.log('LoginScreen login result:', JSON.stringify(result, null, 2));
+      if (result.success && result.user) {
+        const user = {
+          userId: result.user.userId || 0,
+          username: result.user.username || 'Unknown',
+          balance: result.user.balance || 0,
+          incomingTransactions: result.user.incomingTransactions || [],
+          outgoingTransactions: result.user.outgoingTransactions || [],
+          email: result.user.email || email,
+          ...result.user,
+        };
+        console.log('LoginScreen user keys:', Object.keys(user));
+        console.log('LoginScreen user to navigate:', JSON.stringify(user, null, 2));
+        if (!user.username || !user.balance) {
+          console.warn('LoginScreen warning: Missing username or balance');
+          setErrorMessage('User data incomplete');
+          setIsLoading(false);
+          return;
+        }
+        console.log('LoginScreen attempting navigation to Home');
+        console.log('LoginScreen local state before:', JSON.stringify(navigation.getState(), null, 2));
+        console.log('LoginScreen root state before:', JSON.stringify(navigation.getParent()?.getState() || 'no parent', null, 2));
+        // Try root navigation
+        const rootNav = navigation.getParent();
+        if (rootNav) {
+          rootNav.reset({
+            index: 0,
+            routes: [{ name: 'Home', params: { user } }],
+          });
+          console.log('LoginScreen root reset to Home, params sent:', JSON.stringify({ user }, null, 2));
+        } else {
+          // Fallback to local navigation
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home', params: { user } }],
+          });
+          console.log('LoginScreen local reset to Home, params sent:', JSON.stringify({ user }, null, 2));
+        }
+        console.log('LoginScreen local state after:', JSON.stringify(navigation.getState(), null, 2));
+        console.log('LoginScreen root state after:', JSON.stringify(navigation.getParent()?.getState() || 'no parent', null, 2));
       } else {
-        setErrorMessage(result.message);
+        setErrorMessage(result.message || 'Login failed');
       }
     } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
       console.error('LoginScreen error:', error);
+      setErrorMessage('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -140,10 +179,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: '50%',
-    transform: [{ translateY: -12 }], // Adjusted to center vertically
+    transform: [{ translateY: -12 }],
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 5, // Added for better touch area
+    padding: 5,
   },
   forgotPasswordLink: {
     color: globalStyles.COLORS.primary,

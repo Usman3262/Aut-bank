@@ -11,17 +11,31 @@ const SignupStep6 = ({ navigation, route }) => {
   useEffect(() => {
     const submitData = async () => {
       try {
-        const result = await registerUser(signupData);
+        const defaultImage = require('../Assets/images/users/user1.jpg');
+        const userData = {
+          ...signupData,
+          userId: Date.now().toString(),
+          balance: 0,
+          incomingTransactions: [],
+          outgoingTransactions: [],
+          profileImage: defaultImage,
+        };
+        console.log('SignupStep6: Registering user with data:', {
+          ...userData,
+          profileImage: '[Image require]', // Avoid logging require object
+        });
+        const result = await registerUser(userData);
         if (result.success) {
-          setIsLoading(false); // Stop loading when successful
+          console.log('SignupStep6: User registered successfully');
+          setIsLoading(false);
         } else {
           setErrorMessage(result.message);
           setIsLoading(false);
         }
       } catch (error) {
+        console.error('SignupStep6 submitData error:', error);
         setErrorMessage('An error occurred while registering. Please try again.');
         setIsLoading(false);
-        console.error('SignupStep6 error:', error);
       }
     };
 
@@ -59,7 +73,7 @@ const SignupStep6 = ({ navigation, route }) => {
       ) : (
         <View style={styles.messageContainer}>
           <Text style={styles.successMessage}>
-            Waiting for admin approval, when it is approved we will notify you via email address.
+            Waiting for admin approval, we will notify you via email once approved.
           </Text>
         </View>
       )}
@@ -77,7 +91,7 @@ const SignupStep6 = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   messageContainer: {
-    backgroundColor: globalStyles.COLORS.primary, // Use primary color as background
+    backgroundColor: globalStyles.COLORS.primary,
     borderRadius: 10,
     padding: 15,
     marginVertical: globalStyles.SPACING.large,
@@ -87,13 +101,13 @@ const styles = StyleSheet.create({
   successMessage: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: globalStyles.COLORS.white, // White text for contrast
+    color: globalStyles.COLORS.white,
     textAlign: 'center',
-    lineHeight: 24, // Improve readability
+    lineHeight: 24,
   },
   loginButton: {
-    backgroundColor: globalStyles.COLORS.secondary, // Use secondary color for the button
-    width: '60%', // Make the button slightly narrower for better aesthetics
+    backgroundColor: globalStyles.COLORS.secondary,
+    width: '60%',
   },
 });
 

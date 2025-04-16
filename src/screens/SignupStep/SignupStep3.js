@@ -6,39 +6,68 @@ const SignupStep3 = ({ navigation, route }) => {
   const { signupData } = route.params;
   const [streetAddress, setStreetAddress] = useState('');
   const [city, setCity] = useState('');
-  const [state, setState] = useState('');
   const [country, setCountry] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateInputs = () => {
-    if (!streetAddress || !city || !state || !country || !postalCode) {
+    const trimmedStreetAddress = streetAddress.trim();
+    const trimmedCity = city.trim();
+    const trimmedCountry = country.trim();
+    const trimmedPostalCode = postalCode.trim();
+
+    if (!trimmedStreetAddress || !trimmedCity || !trimmedCountry || !trimmedPostalCode) {
       setErrorMessage('All fields are required');
       return false;
     }
+
+    const postalCodeRegex = /^[a-zA-Z0-9]{4,10}$/;
+    if (!postalCodeRegex.test(trimmedPostalCode)) {
+      setErrorMessage('Postal code must be 4-10 alphanumeric characters');
+      return false;
+    }
+
     return true;
   };
 
   const handleNext = () => {
     setErrorMessage('');
-    if (!validateInputs()) return;
-    navigation.navigate('SignupStep4', {
-      signupData: {
+    setIsLoading(true);
+    try {
+      if (!validateInputs()) {
+        setIsLoading(false);
+        return;
+      }
+      const trimmedData = {
+        streetAddress: streetAddress.trim(),
+        city: city.trim(),
+        country: country.trim(),
+        postalCode: postalCode.trim(),
+      };
+      console.log('SignupStep3: Navigating to SignupStep4 with data:', {
         ...signupData,
-        streetAddress,
-        city,
-        state,
-        country,
-        postalCode,
-      },
-    });
+        ...trimmedData,
+      });
+      navigation.navigate('SignupStep4', {
+        signupData: {
+          ...signupData,
+          ...trimmedData,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep3 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adjust behavior based on platform
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Fine-tune offset if needed
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
@@ -67,6 +96,7 @@ const SignupStep3 = ({ navigation, route }) => {
             value={streetAddress}
             onChangeText={setStreetAddress}
             autoCapitalize="words"
+            editable={!isLoading}
           />
           <TextInput
             style={globalStyles.input}
@@ -75,14 +105,7 @@ const SignupStep3 = ({ navigation, route }) => {
             value={city}
             onChangeText={setCity}
             autoCapitalize="words"
-          />
-          <TextInput
-            style={globalStyles.input}
-            placeholder="State"
-            placeholderTextColor={globalStyles.COLORS.placeholder}
-            value={state}
-            onChangeText={setState}
-            autoCapitalize="words"
+            editable={!isLoading}
           />
           <TextInput
             style={globalStyles.input}
@@ -91,21 +114,24 @@ const SignupStep3 = ({ navigation, route }) => {
             value={country}
             onChangeText={setCountry}
             autoCapitalize="words"
+            editable={!isLoading}
           />
           <TextInput
             style={globalStyles.input}
             placeholder="Postal Code"
             placeholderTextColor={globalStyles.COLORS.placeholder}
-            keyboardType="numeric"
+            keyboardType="default"
             value={postalCode}
             onChangeText={setPostalCode}
+            editable={!isLoading}
           />
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
           <TouchableOpacity
-            style={[globalStyles.button, { alignSelf: 'center' }]}
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
             onPress={handleNext}
+            disabled={isLoading}
           >
-            <Text style={globalStyles.buttonText}>Next</Text>
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Processing...' : 'Next'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -10,39 +10,52 @@ const SignupStep2 = ({ navigation, route }) => {
   const [cnic, setCnic] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState(new Date(2000, 0, 1));
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const formatCnic = (input) => {
+    const digits = input.replace(/\D/g, '');
+    if (digits.length <= 5) return digits;
+    if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12, 13)}`;
+  };
+
   const validateInputs = async () => {
-    if (!cnic || !mobileNumber) {
+    const trimmedCnic = cnic.replace(/\D/g, '');
+    const trimmedPhoneNumber = phoneNumber.trim();
+
+    if (!trimmedCnic || !trimmedPhoneNumber) {
       setErrorMessage('All fields are required');
       return false;
     }
-    if (cnic.length !== 13 || isNaN(cnic)) {
+    if (trimmedCnic.length !== 13) {
       setErrorMessage('Please enter a valid 13-digit CNIC number');
       return false;
     }
 
-    const result = await checkCnicUnique(cnic);
-    if (!result.success) {
-      setErrorMessage(result.message);
+    try {
+      const result = await checkCnicUnique(trimmedCnic);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('SignupStep2 checkCnicUnique error:', error);
+      setErrorMessage('Failed to validate CNIC. Please try again.');
       return false;
     }
 
     const today = new Date();
-    const age = today.getFullYear() - dateOfBirth.getFullYear();
-    const monthDiff = today.getMonth() - dateOfBirth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())) {
-      age--;
-    }
+    const age = today.getFullYear() - dateOfBirth.getFullYear() - (today.getMonth() < dateOfBirth.getMonth() || (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
     if (age < 18) {
       setErrorMessage('You must be at least 18 years old to sign up');
       return false;
     }
-    const mobileRegex = /^\d{10,15}$/;
-    if (!mobileRegex.test(mobileNumber)) {
-      setErrorMessage('Please enter a valid mobile number (10-15 digits)');
+
+    const phoneRegex = /^\+?\d{10,15}$/;
+    if (!phoneRegex.test(trimmedPhoneNumber)) {
+      setErrorMessage('Please enter a valid phone number (10-15 digits, optional + prefix)');
       return false;
     }
     return true;
@@ -53,20 +66,27 @@ const SignupStep2 = ({ navigation, route }) => {
     setIsLoading(true);
     try {
       if (!(await validateInputs())) {
-        setIsLoading(false);
         return;
       }
+      const formattedCnic = formatCnic(cnic);
+      const trimmedPhoneNumber = phoneNumber.trim();
+      console.log('SignupStep2: Navigating to SignupStep3 with data:', {
+        ...signupData,
+        cnic: formattedCnic,
+        dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
+        phoneNumber: trimmedPhoneNumber,
+      });
       navigation.navigate('SignupStep3', {
         signupData: {
           ...signupData,
-          cnic,
+          cnic: formattedCnic,
           dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
-          mobileNumber,
+          phoneNumber: trimmedPhoneNumber,
         },
       });
     } catch (error) {
+      console.error('SignupStep2 handleNext error:', error);
       setErrorMessage('An error occurred. Please try again.');
-      console.error('SignupStep2 error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +94,7 @@ const SignupStep2 = ({ navigation, route }) => {
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || dateOfBirth;
-    setShowDatePicker(false);
+    setShowDatePicker(Platform.OS === 'ios'); // Auto-close on Android
     setDateOfBirth(currentDate);
   };
 
@@ -106,12 +126,12 @@ const SignupStep2 = ({ navigation, route }) => {
           </View>
           <TextInput
             style={globalStyles.input}
-            placeholder="CNIC (e.g., 1234567890123)"
+            placeholder="CNIC (e.g., 12345-6789012-3)"
             placeholderTextColor={globalStyles.COLORS.placeholder}
             keyboardType="numeric"
             value={cnic}
-            onChangeText={setCnic}
-            maxLength={13}
+            onChangeText={(text) => setCnic(formatCnic(text))}
+            maxLength={15} // 13 digits + 2 dashes
             editable={!isLoading}
           />
           <TouchableOpacity
@@ -134,23 +154,25 @@ const SignupStep2 = ({ navigation, route }) => {
                     onChange={onDateChange}
                     maximumDate={new Date()}
                   />
-                  <TouchableOpacity
-                    style={styles.datePickerButton}
-                    onPress={() => setShowDatePicker(false)}
-                  >
-                    <Text style={styles.datePickerButtonText}>Done</Text>
-                  </TouchableOpacity>
+                  {Platform.OS === 'ios' && (
+                    <TouchableOpacity
+                      style={styles.datePickerButton}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <Text style={styles.datePickerButtonText}>Done</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             </Modal>
           )}
           <TextInput
             style={globalStyles.input}
-            placeholder="Mobile Number"
+            placeholder="Phone Number (e.g., +1234567890)"
             placeholderTextColor={globalStyles.COLORS.placeholder}
             keyboardType="phone-pad"
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
             editable={!isLoading}
           />
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}

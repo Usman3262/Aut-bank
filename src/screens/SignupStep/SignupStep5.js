@@ -9,16 +9,22 @@ const SignupStep5 = ({ navigation, route }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const refs = Array(6).fill().map(() => React.createRef());
+
   const handleOtpChange = (value, index) => {
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 1) return; // Limit to single digit
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = trimmedValue;
     setOtp(newOtp);
-    if (value && index < 5) {
-      refs[index + 1].focus();
+    setErrorMessage(''); // Clear error on input
+
+    if (trimmedValue && index < 5) {
+      refs[index + 1].current.focus();
+    } else if (!trimmedValue && index > 0) {
+      refs[index - 1].current.focus();
     }
   };
-
-  const refs = Array(6).fill().map(() => React.createRef());
 
   const validateOtp = async () => {
     const otpString = otp.join('');
@@ -27,13 +33,18 @@ const SignupStep5 = ({ navigation, route }) => {
       return false;
     }
 
-    const result = await verifyOtp(signupData.email, otpString);
-    if (!result.success) {
-      setErrorMessage(result.message);
+    try {
+      const result = await verifyOtp(signupData.email, otpString);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep5 verifyOtp error:', error);
+      setErrorMessage('Failed to verify OTP. Please try again.');
       return false;
     }
-
-    return true;
   };
 
   const handleVerify = async () => {
@@ -41,13 +52,13 @@ const SignupStep5 = ({ navigation, route }) => {
     setIsLoading(true);
     try {
       if (!(await validateOtp())) {
-        setIsLoading(false);
         return;
       }
+      console.log('SignupStep5: Navigating to SignupStep6 with data:', signupData);
       navigation.navigate('SignupStep6', { signupData });
     } catch (error) {
+      console.error('SignupStep5 handleVerify error:', error);
       setErrorMessage('An error occurred. Please try again.');
-      console.error('SignupStep5 error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -83,8 +94,8 @@ const SignupStep5 = ({ navigation, route }) => {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => (refs[index] = ref)}
-                style={styles.otpInput}
+                ref={refs[index]}
+                style={[styles.otpInput, { borderColor: errorMessage ? globalStyles.COLORS.error : globalStyles.COLORS.gray }]}
                 keyboardType="numeric"
                 maxLength={1}
                 value={digit}
@@ -114,11 +125,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 50,
     borderWidth: 1,
-    borderColor: globalStyles.COLORS.gray,
     borderRadius: 8,
     textAlign: 'center',
     fontSize: globalStyles.FONT_SIZES.medium,
     marginHorizontal: 5,
+    color: globalStyles.COLORS.text,
   },
 });
 

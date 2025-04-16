@@ -11,18 +11,32 @@ const SignupStep1 = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const validateInputs = async () => {
-    if (!firstName || !lastName || !username) {
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedFirstName || !trimmedLastName || !trimmedUsername) {
       setErrorMessage('All fields are required');
       return false;
     }
 
-    const result = await checkUsernameUnique(username);
-    if (!result.success) {
-      setErrorMessage(result.message);
+    if (trimmedUsername.length < 3) {
+      setErrorMessage('Username must be at least 3 characters');
       return false;
     }
 
-    return true;
+    try {
+      const result = await checkUsernameUnique(trimmedUsername);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep1 checkUsernameUnique error:', error);
+      setErrorMessage('Failed to validate username. Please try again.');
+      return false;
+    }
   };
 
   const handleNext = async () => {
@@ -30,15 +44,23 @@ const SignupStep1 = ({ navigation }) => {
     setIsLoading(true);
     try {
       if (!(await validateInputs())) {
-        setIsLoading(false);
         return;
       }
+      console.log('SignupStep1: Navigating to SignupStep2 with data:', {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: username.trim(),
+      });
       navigation.navigate('SignupStep2', {
-        signupData: { firstName, lastName, username },
+        signupData: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: username.trim(),
+        },
       });
     } catch (error) {
+      console.error('SignupStep1 handleNext error:', error);
       setErrorMessage('An error occurred. Please try again.');
-      console.error('SignupStep1 error:', error);
     } finally {
       setIsLoading(false);
     }

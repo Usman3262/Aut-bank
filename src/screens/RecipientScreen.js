@@ -1,11 +1,11 @@
-// screens/BillsScreen.js
+// screens/TransactionsScreen.js
 import React from 'react';
 import { View, Text } from 'react-native';
 
-const BillsScreen = () => (
+const  RecipientScreen = () => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>Bills Screen</Text>
+    <Text> Recipient Screen</Text>
   </View>
 );
 
-export default BillsScreen;
+export default RecipientScreen;
