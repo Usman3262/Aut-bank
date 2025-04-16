@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { checkEmailUniqueAndSendOtp } from '../../services/api';
 import globalStyles from '../../styles/globalStyles';
 
@@ -9,10 +10,28 @@ const SignupStep4 = ({ navigation, route }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const selectImage = () => {
+    launchImageLibrary(
+      { mediaType: 'photo', maxWidth: 100, maxHeight: 100, quality: 0.5 },
+      (response) => {
+        if (response.didCancel) {
+          console.log('SignupStep4: Image picker cancelled');
+        } else if (response.errorCode) {
+          console.error('SignupStep4 image picker error:', response.errorMessage);
+          setErrorMessage('Failed to select image. Please try again.');
+        } else if (response.assets && response.assets[0].uri) {
+          setProfileImage(response.assets[0].uri);
+          setErrorMessage('');
+        }
+      }
+    );
+  };
 
   const validateInputs = async () => {
     const trimmedEmail = email.trim();
@@ -21,6 +40,11 @@ const SignupStep4 = ({ navigation, route }) => {
 
     if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
       setErrorMessage('All fields are required');
+      return false;
+    }
+
+    if (!profileImage) {
+      setErrorMessage('Please select a profile picture');
       return false;
     }
 
@@ -63,7 +87,7 @@ const SignupStep4 = ({ navigation, route }) => {
       if (!(await validateInputs())) {
         return;
       }
-      const trimmedData = { email: email.trim(), password: password.trim() };
+      const trimmedData = { email: email.trim(), password: password.trim(), profileImage };
       console.log('SignupStep4: Navigating to SignupStep5 with data:', {
         ...signupData,
         ...trimmedData,
@@ -108,6 +132,20 @@ const SignupStep4 = ({ navigation, route }) => {
               />
             ))}
           </View>
+          <TouchableOpacity
+            style={[globalStyles.button, styles.imageButton, isLoading && { opacity: 0.7 }]}
+            onPress={selectImage}
+            disabled={isLoading}
+          >
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <Text style={globalStyles.buttonText}>Upload Profile Picture</Text>
+            )}
+          </TouchableOpacity>
           <TextInput
             style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
             placeholder="Email Address"
@@ -182,6 +220,20 @@ const styles = StyleSheet.create({
     right: 10,
     top: '50%',
     transform: [{ translateY: -10 }],
+  },
+  imageButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: globalStyles.SPACING.medium,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
 });
 

@@ -1,0 +1,3165 @@
+# --- package.json ---
+{
+  "name": "AutFinanceBank",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "lint": "eslint .",
+    "start": "react-native start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@react-native-community/datetimepicker": "^8.3.0",
+    "@react-navigation/bottom-tabs": "^7.3.10",
+    "@react-navigation/native": "^7.1.6",
+    "@react-navigation/native-stack": "^7.3.10",
+    "axios": "^1.8.4",
+    "date-fns": "^4.1.0",
+    "react": "19.0.0",
+    "react-native": "0.79.0",
+    "react-native-dotenv": "^3.4.11",
+    "react-native-image-picker": "^8.2.0",
+    "react-native-reanimated": "^3.17.3",
+    "react-native-safe-area-context": "^5.3.0",
+    "react-native-screens": "^4.10.0",
+    "react-native-vector-icons": "^10.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "18.0.0",
+    "@react-native-community/cli-platform-android": "18.0.0",
+    "@react-native-community/cli-platform-ios": "18.0.0",
+    "@react-native/babel-preset": "0.79.0",
+    "@react-native/eslint-config": "0.79.0",
+    "@react-native/metro-config": "0.79.0",
+    "@react-native/typescript-config": "0.79.0",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^19.0.0",
+    "@types/react-test-renderer": "^19.0.0",
+    "eslint": "^8.19.0",
+    "jest": "^29.6.3",
+    "prettier": "2.8.8",
+    "react-test-renderer": "19.0.0",
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+
+
+# === Source Files ===
+
+
+# --- src\Assets\images\recipients\recipients1.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\Assets\images\recipients\recipients2.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\Assets\images\recipients\recipients3.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\Assets\images\recipients\recipients4.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\Assets\images\users\user1.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\Assets\images\users\user2.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\Assets\images\users\user3.jpg ---
+[Binary or unreadable file skipped]
+
+
+# --- src\context\APIContext.js ---
+
+
+
+# --- src\context\AuthContext.js ---
+
+
+
+# --- src\navigation\AppNavigator.js ---
+// src/navigation/AppNavigator.js
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import LoginScreen from '../screens/LoginScreen';
+import SplashScreen from '../screens/SplashScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import SignupStep1 from '../screens/SignupStep/SignupStep1';
+import SignupStep2 from '../screens/SignupStep/SignupStep2';
+import SignupStep3 from '../screens/SignupStep/SignupStep3';
+import SignupStep4 from '../screens/SignupStep/SignupStep4';
+import SignupStep5 from '../screens/SignupStep/SignupStep5';
+import SignupStep6 from '../screens/SignupStep/SignupStep6';
+import HomeScreen from '../screens/HomeScreen';
+import SendScreen from '../screens/SendScreen';
+import DepositScreen from '../screens/DepositScreen';
+import LoanScreen from '../screens/LoanScreen';
+import TransactionsScreen from '../screens/TransactionsScreen';
+import WithdrawScreen from '../screens/WithdrawScreen';
+import CardsScreen from '../screens/CardsScreen';
+import QRCodeScreen from '../screens/QRCodeScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import HistoryScreen from '../screens/HistoryScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ScanQRScreen from '../screens/ScanQRScreen';
+import RecipientScreen from '../screens/RecipientScreen';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const AppTabs = ({ route }) => {
+  const user = route.params?.user;
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: { height: 60, paddingBottom: 5 },
+        tabBarLabelStyle: { fontSize: 12 },
+        tabBarActiveTintColor: '#3498db',
+        tabBarInactiveTintColor: '#7f8c8d',
+        headerShown: false,
+      }}
+      initialRouteName="HomeTab"
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeScreen}
+        initialParams={{ user }}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color }) => <Icon name="home" size={24} color={color} />,
+        }}
+        listeners={({ navigation }) => ({
+          focus: () => {
+            console.log('AppTabs: HomeTab focused, passing user:', JSON.stringify(user, null, 2));
+            navigation.setParams({ user });
+          },
+        })}
+      />
+      <Tab.Screen
+        name="HistoryTab"
+        component={HistoryScreen}
+        options={{
+          tabBarLabel: 'History',
+          tabBarIcon: ({ color }) => <Icon name="history" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="ScanQR"
+        component={ScanQRScreen}
+        options={{
+          tabBarIcon: ({ color }) => <Icon name="qr-code" size={32} color={color} />,
+          tabBarLabel: '',
+        }}
+      />
+      <Tab.Screen
+        name="SettingsTab"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: 'Settings',
+          tabBarIcon: ({ color }) => <Icon name="settings" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileScreen}
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color }) => <Icon name="person" size={24} color={color} />,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
+
+const AppNavigator = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen
+          name="Welcome"
+          component={SplashScreen}
+          listeners={{
+            focus: () => console.log('Navigation: Focused on Welcome'),
+          }}
+        />
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          listeners={{
+            focus: () => console.log('Navigation: Focused on Onboarding'),
+          }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          listeners={{
+            focus: () => console.log('Navigation: Focused on Login'),
+          }}
+        />
+        <Stack.Screen name="SignupStep1" component={SignupStep1} />
+        <Stack.Screen name="SignupStep2" component={SignupStep2} />
+        <Stack.Screen name="SignupStep3" component={SignupStep3} />
+        <Stack.Screen name="SignupStep4" component={SignupStep4} />
+        <Stack.Screen name="SignupStep5" component={SignupStep5} />
+        <Stack.Screen name="SignupStep6" component={SignupStep6} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen
+          name="Home"
+          component={AppTabs}
+          listeners={{
+            focus: (e) => {
+              console.log('Navigation: Focused on Home (AppTabs), params:', JSON.stringify(e.target?.params, null, 2));
+            },
+          }}
+        />
+        <Stack.Screen name="Send" component={SendScreen} />
+        <Stack.Screen name="Deposit" component={DepositScreen} />
+        <Stack.Screen name="Loan" component={LoanScreen} />
+        <Stack.Screen name="Transactions" component={TransactionsScreen} />
+        <Stack.Screen name="Withdraw" component={WithdrawScreen} />
+        <Stack.Screen name="Cards" component={CardsScreen} />
+        <Stack.Screen name="QRCode" component={QRCodeScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="RecipientScreen" component={RecipientScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;
+
+
+# --- src\screens\CardsScreen.js ---
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const CardsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Card Screen</Text>
+  </View>
+);
+
+export default CardsScreen;
+
+
+# --- src\screens\DepositScreen.js ---
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const DepositScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Deposit Screen</Text>
+  </View>
+);
+
+export default DepositScreen;
+
+
+# --- src\screens\ForgotPasswordScreen.js ---
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import { sendOtpForPasswordReset, verifyOtpAndResetPassword } from '../services/api';
+import globalStyles from '../styles/globalStyles';
+
+const ForgotPasswordScreen = ({ navigation }) => {
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendOtp = async () => {
+    setErrorMessage('');
+    if (!email) {
+      setErrorMessage('Email is required');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await sendOtpForPasswordReset(email);
+      if (result.success) {
+        setStep(2);
+      } else {
+        setErrorMessage(result.message);
+      }
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred: ' + error.message);
+      console.error('ForgotPasswordScreen sendOtp error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setErrorMessage('');
+    if (!otp || otp.length !== 6) {
+      setErrorMessage('Please enter a valid 6-digit OTP');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setErrorMessage('New password must be at least 6 characters long');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await verifyOtpAndResetPassword(email, otp, newPassword);
+      if (result.success) {
+        setErrorMessage('');
+        alert('Password reset successfully! Please log in with your new password.');
+        navigation.replace('Login');
+      } else {
+        setErrorMessage(result.message);
+      }
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred: ' + error.message);
+      console.error('ForgotPasswordScreen resetPassword error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+          <View>
+            <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+              <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+              <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+            </View>
+
+            <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+              Forgot Password
+            </Text>
+
+            {step === 1 ? (
+              <>
+                <TextInput
+                  style={[globalStyles.input, { color: globalStyles.COLORS.text, alignSelf: 'center' }]}
+                  placeholder="Email Address"
+                  placeholderTextColor={globalStyles.COLORS.placeholder}
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  editable={!isLoading}
+                />
+
+                {errorMessage ? <Text style={[globalStyles.textError, { alignSelf: 'center' }]}>{errorMessage}</Text> : null}
+
+                <TouchableOpacity
+                  style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+                  onPress={handleSendOtp}
+                  disabled={isLoading}
+                >
+                  <Text style={globalStyles.buttonText}>{isLoading ? 'Sending OTP...' : 'Send OTP'}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TextInput
+                  style={[globalStyles.input, { color: globalStyles.COLORS.text, alignSelf: 'center' }]}
+                  placeholder="Enter OTP"
+                  placeholderTextColor={globalStyles.COLORS.placeholder}
+                  keyboardType="numeric"
+                  value={otp}
+                  onChangeText={setOtp}
+                  maxLength={6}
+                  editable={!isLoading}
+                />
+
+                <View style={{ position: 'relative', width: '100%', alignSelf: 'center' }}>
+                  <TextInput
+                    style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+                    placeholder="New Password"
+                    placeholderTextColor={globalStyles.COLORS.placeholder}
+                    secureTextEntry={!showNewPassword}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    <Text>{showNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={{ position: 'relative', width: '100%', alignSelf: 'center' }}>
+                  <TextInput
+                    style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+                    placeholder="Confirm New Password"
+                    placeholderTextColor={globalStyles.COLORS.placeholder}
+                    secureTextEntry={!showConfirmNewPassword}
+                    value={confirmNewPassword}
+                    onChangeText={setConfirmNewPassword}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                  >
+                    <Text>{showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {errorMessage ? <Text style={[globalStyles.textError, { alignSelf: 'center' }]}>{errorMessage}</Text> : null}
+
+                <TouchableOpacity
+                  style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+                  onPress={handleResetPassword}
+                  disabled={isLoading}
+                >
+                  <Text style={globalStyles.buttonText}>{isLoading ? 'Resetting...' : 'Reset Password'}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={[globalStyles.text, styles.backToLoginLink]}>Back to Login</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerText}>Your Trusted Banking Partner</Text>
+            <View style={styles.footerLine} />
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  backToLoginLink: {
+    color: globalStyles.COLORS.primary,
+    textAlign: 'center',
+    marginVertical: globalStyles.SPACING.small,
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+  },
+  footer: {
+    alignItems: 'center',
+    marginBottom: globalStyles.SPACING.large,
+  },
+  footerLine: {
+    width: '80%',
+    height: 2,
+    backgroundColor: globalStyles.COLORS.primary,
+    marginVertical: globalStyles.SPACING.small,
+  },
+  footerText: {
+    fontSize: 16,
+    color: globalStyles.COLORS.text,
+    fontStyle: 'italic',
+  },
+});
+
+export default ForgotPasswordScreen;
+
+
+# --- src\screens\HistoryScreen.js ---
+// screens/BillsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const BillsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>history Screen</Text>
+  </View>
+);
+
+export default BillsScreen;
+
+
+# --- src\screens\HomeScreen.js ---
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+  Image,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
+const { height } = Dimensions.get('window');
+
+const HomeScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const [user, setUser] = useState(route.params?.user);
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    console.log('HomeScreen route.params:', JSON.stringify(route.params, null, 2));
+    console.log('HomeScreen user:', JSON.stringify(user, null, 2));
+    console.log('HomeScreen user keys:', user ? Object.keys(user) : 'undefined');
+
+    if (route.params?.user) {
+      setUser(route.params.user);
+      setTransactions([
+        ...(route.params.user?.incomingTransactions || []).map((t) => ({
+          id: `incoming-${t.id}`,
+          type: 'credit',
+          description: `From ${t.senderName}`,
+          amount: t.amount,
+          date: t.date,
+        })),
+        ...(route.params.user?.outgoingTransactions || []).map((t) => ({
+          id: `outgoing-${t.id}`,
+          type: 'debit',
+          description: `To ${t.recipientName}`,
+          amount: t.amount,
+          date: t.date,
+        })),
+      ]);
+    }
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('HomeScreen navigation focus, route.params:', JSON.stringify(route.params, null, 2));
+      if (route.params?.user) {
+        setUser(route.params.user);
+        setTransactions([
+          ...(route.params.user?.incomingTransactions || []).map((t) => ({
+            id: `incoming-${t.id}`,
+            type: 'credit',
+            description: `From ${t.senderName}`,
+            amount: t.amount,
+            date: t.date,
+          })),
+          ...(route.params.user?.outgoingTransactions || []).map((t) => ({
+            id: `outgoing-${t.id}`,
+            type: 'debit',
+            description: `To ${t.recipientName}`,
+            amount: t.amount,
+            date: t.date,
+          })),
+        ]);
+      } else {
+        console.warn('HomeScreen no user in focus params');
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route.params]);
+
+  const BalanceCard = () => (
+    <View style={styles.balanceCard}>
+      <Text style={styles.balanceTitle}>Balance</Text>
+      <View style={styles.balanceRow}>
+        <Text style={styles.balanceAmount}>
+          ${user?.balance?.toFixed(2) || '0.00'}
+        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('QRCode')}>
+          <Icon name="qr-code" size={24} color="#3498db" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const ServiceItem = ({ title, icon, screen }) => (
+    <TouchableOpacity style={styles.serviceItem} onPress={() => navigation.navigate(screen)}>
+      <Icon name={icon} size={24} color="#3498db" />
+      <Text style={styles.serviceText}>{title}</Text>
+    </TouchableOpacity>
+  );
+
+  const TransactionItem = ({ item }) => (
+    <View style={styles.transaction}>
+      <Text style={[styles.transactionIcon, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
+        {item.type === 'credit' ? '↓' : '↑'}
+      </Text>
+      <View style={styles.transactionDetails}>
+        <Text style={styles.transactionDescription}>{item.description}</Text>
+        <Text style={styles.transactionDate}>{item.date}</Text>
+      </View>
+      <Text style={[styles.transactionAmount, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
+        {item.type === 'credit' ? '+' : '-'}${item.amount.toFixed(2)}
+      </Text>
+    </View>
+  );
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.blueSection}>
+          <Text style={styles.username}>Loading user data...</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })}
+          >
+            <Text style={styles.retryButtonText}>Retry Login</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.blueSection}>
+        <View style={styles.header}>
+          <View style={styles.userContainer}>
+            <View style={styles.userAvatar}>
+              {user?.profileImage ? (
+                <Image
+                  source={{ uri: user.profileImage }}
+                  style={styles.userAvatarImage}
+                  defaultSource={require('../Assets/images/users/user1.jpg')}
+                  onError={(e) => console.log('HomeScreen image error:', e.nativeEvent.error)}
+                />
+              ) : (
+                <Text style={styles.userInitial}>
+                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                </Text>
+              )}
+            </View>
+            <View style={styles.userTextContainer}>
+              <Text style={styles.username}>{user?.username || 'User'}</Text>
+              <Text style={styles.greeting}>Let's save your money</Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+            <Icon name="notifications" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <BalanceCard />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.whiteSection}>
+        <View style={styles.servicesContainer}>
+          <Text style={styles.sectionTitle}>Services</Text>
+          <View style={styles.servicesRow}>
+            <ServiceItem title="Send" icon="send" screen="Send" />
+            <ServiceItem title="Deposit" icon="add" screen="Deposit" />
+            <ServiceItem title="Loan" icon="account-balance" screen="Loan" />
+          </View>
+          <View style={styles.servicesRow}>
+            <ServiceItem title="Withdraw" icon="atm" screen="Withdraw" />
+            <ServiceItem title="Cards" icon="credit-card" screen="Cards" />
+            <ServiceItem title="Transactions" icon="history" screen="Transactions" />
+          </View>
+        </View>
+
+        <View style={styles.recipientsContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recipients</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('RecipientScreen')}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={[]}
+            renderItem={() => null}
+            keyExtractor={() => ''}
+            scrollEnabled={false}
+          />
+        </View>
+
+        <View style={styles.transactionsContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Transaction History</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={transactions}
+            renderItem={TransactionItem}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  blueSection: {
+    height: height * 0.2,
+    backgroundColor: '#3498db',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    padding: 16,
+    zIndex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    overflow: 'hidden',
+  },
+  userAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  userInitial: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#3498db',
+  },
+  userTextContainer: { flexDirection: 'column' },
+  username: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
+  greeting: { fontSize: 14, color: '#fff', marginTop: 4 },
+  balanceCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 4,
+    position: 'absolute',
+    top: height * 0.12,
+    left: 16,
+    right: 16,
+    zIndex: 2,
+  },
+  balanceTitle: { fontSize: 14, color: '#7f8c8d' },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  balanceAmount: { fontSize: 26, fontWeight: 'bold', color: '#2c3e50', marginVertical: 4 },
+  whiteSection: {
+    backgroundColor: '#fff',
+    paddingTop: height * 0.08,
+  },
+  servicesContainer: { paddingHorizontal: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  servicesRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  serviceItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#ecf0f1',
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  serviceText: { fontSize: 12, color: '#2c3e50', marginTop: 4 },
+  recipientsContainer: { padding: 16 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#3498db',
+    fontWeight: '500',
+  },
+  retryButton: {
+    backgroundColor: '#3498db',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  transactionsContainer: { padding: 16 },
+  transaction: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+  transactionIcon: { fontSize: 20, marginRight: 8 },
+  transactionDetails: { flex: 1 },
+  transactionDescription: { fontSize: 14, color: '#2c3e50' },
+  transactionDate: { fontSize: 10, color: '#7f8c8d' },
+  transactionAmount: { fontSize: 14, fontWeight: 'bold' },
+});
+
+export default HomeScreen;
+
+
+# --- src\screens\LoanScreen.js ---
+// screens/LoanScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const LoanScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Loan Screen</Text>
+  </View>
+);
+
+export default LoanScreen;
+
+
+# --- src\screens\LoginScreen.js ---
+import React, { useState } from 'react';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import { loginUser } from '../services/api';
+import globalStyles from '../styles/globalStyles';
+
+const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateInputs = () => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    if (!trimmedEmail || !trimmedPassword) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMessage('Please enter a valid email address');
+      return false;
+    }
+    if (trimmedPassword.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long');
+      return false;
+    }
+    return true;
+  };
+
+  const handleLogin = async () => {
+    setErrorMessage('');
+    if (!validateInputs()) return;
+
+    setIsLoading(true);
+    try {
+      const result = await loginUser(email, password);
+      console.log('LoginScreen login result:', JSON.stringify(result, null, 2));
+      if (result.success && result.user) {
+        const user = {
+          userId: result.user.userId || '0',
+          username: result.user.username || 'Unknown',
+          balance: result.user.balance ?? 0,
+          incomingTransactions: result.user.incomingTransactions || [],
+          outgoingTransactions: result.user.outgoingTransactions || [],
+          email: result.user.email || email,
+          ...result.user,
+        };
+        console.log('LoginScreen user keys:', Object.keys(user));
+        if (!user.username || user.balance === undefined) {
+          console.warn('LoginScreen warning: Missing username or balance');
+          setErrorMessage('User data incomplete');
+          return;
+        }
+        console.log('LoginScreen user to navigate:', JSON.stringify(user, null, 2));
+        navigation.replace('Home', { user });
+      } else {
+        setErrorMessage(result.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('LoginScreen error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+          <View>
+            <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+              <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+              <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+            </View>
+            <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+              Login
+            </Text>
+            <TextInput
+              style={[globalStyles.input, { color: globalStyles.COLORS.text, alignSelf: 'center' }]}
+              placeholder="Email Address"
+              placeholderTextColor={globalStyles.COLORS.placeholder}
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              editable={!isLoading}
+            />
+            <View style={{ position: 'relative', width: '100%', alignSelf: 'center' }}>
+              <TextInput
+                style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+                placeholder="Password"
+                placeholderTextColor={globalStyles.COLORS.placeholder}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                editable={!isLoading}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={20} color={globalStyles.COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            {errorMessage ? <Text style={[globalStyles.textError, { alignSelf: 'center' }]}>{errorMessage}</Text> : null}
+            <TouchableOpacity
+              style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <Text style={globalStyles.buttonText}>{isLoading ? 'Logging in...' : 'Login'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={[globalStyles.text, styles.forgotPasswordLink]}>Forgot Password?</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('SignupStep1')}>
+              <Text style={[globalStyles.text, styles.signUpLink]}>Don't have an account? Create one</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.footer}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerText}>Your Trusted Banking Partner</Text>
+            <View style={styles.footerLine} />
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -12 }],
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 5,
+  },
+  forgotPasswordLink: {
+    color: globalStyles.COLORS.primary,
+    textAlign: 'center',
+    marginVertical: globalStyles.SPACING.small,
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+  },
+  signUpLink: {
+    color: globalStyles.COLORS.secondary,
+    textAlign: 'center',
+    marginVertical: globalStyles.SPACING.small,
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+  },
+  footer: {
+    alignItems: 'center',
+    marginBottom: globalStyles.SPACING.large,
+  },
+  footerLine: {
+    width: '80%',
+    height: 2,
+    backgroundColor: globalStyles.COLORS.primary,
+    marginVertical: globalStyles.SPACING.small,
+  },
+  footerText: {
+    fontSize: 16,
+    color: globalStyles.COLORS.text,
+    fontStyle: 'italic',
+  },
+});
+
+export default LoginScreen;
+
+
+# --- src\screens\NotificationsScreen.js ---
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const NotificationsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Notifications Screen</Text>
+  </View>
+);
+
+export default NotificationsScreen;
+
+
+# --- src\screens\OnboardingScreen.js ---
+import React, { useRef, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Dimensions, SafeAreaView } from 'react-native';
+import globalStyles from '../styles/globalStyles'; // Adjust the path as needed
+import { useNavigation } from '@react-navigation/native';
+
+const { width } = Dimensions.get('screen');
+
+const onboardingData = [
+  {
+    id: '1',
+    logo: true, // Use the two-circle logo
+    title1: 'Welcome to',
+    title2: 'Aut Bank.',
+    subtitle: 'Your Best Money Transfer Partner.',
+    showGetStarted: true,
+  },
+  {
+    id: '2',
+    logo: true, // Use the two-circle logo (same as first screen)
+    title1: 'Easy, Fast & Trusted',
+    subtitle: 'Fast money transfer and guaranteed safe with others.',
+    showGetStarted: false,
+    logoText: 'Fast', // Bold text below the logo
+  },
+  {
+    id: '3',
+    logo: true, // Use the two-circle logo (same as first screen)
+    title1: 'Free Transactions',
+    subtitle: 'Provides the quality of the financial system with free money transactions without any fees.',
+    showGetStarted: false,
+    logoText: 'Free', // Bold text below the logo
+  },
+];
+
+const OnboardingScreen = () => {
+  const navigation = useNavigation();
+  const flatListRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleContinue = () => {
+    if (currentIndex < onboardingData.length - 1) {
+      const nextIndex = currentIndex + 1;
+      flatListRef.current.scrollToIndex({ index: nextIndex, animated: true });
+      setCurrentIndex(nextIndex);
+    }
+  };
+
+  const handleLogin = () => {
+    navigation.navigate('Login');
+    
+    // navigation.navigate('Home');
+
+  };
+
+  const handleSignup = () => {
+    navigation.navigate('SignupStep1');
+  };
+
+  const renderItem = ({ item, index }) => (
+    <View style={{ width, flex: 1 }}>
+      {/* Centered content (logo, title, subtitle) */}
+      <View style={[globalStyles.centeredContainer, { flex: 1 }]}>
+        {/* Logo with bold text below */}
+        {item.logo && (
+          <View style={{ alignItems: 'center' }}>
+            <View style={globalStyles.logoContainer}>
+              <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+              <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+            </View>
+            {/* Bold text below the logo for screens 2 and 3 */}
+            {item.logoText && (
+              <Text
+                style={{
+                  fontSize: globalStyles.FONT_SIZES.xlarge,
+                  fontWeight: 'bold',
+                  color: globalStyles.COLORS.primary,
+                  marginBottom: globalStyles.SPACING.medium,
+                }}
+              >
+                {item.logoText}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Title */}
+        <Text style={globalStyles.textXLargeBlack}>{item.title1}</Text>
+        {item.title2 && <Text style={globalStyles.textXLarge}>{item.title2}</Text>}
+
+        {/* Subtitle */}
+        <Text
+          style={[
+            item.id === '1' ? globalStyles.textSmall : globalStyles.textSmallGray,
+            { marginTop: globalStyles.SPACING.medium },
+          ]}
+        >
+          {item.subtitle}
+        </Text>
+      </View>
+
+      {/* Bottom container for buttons and dots */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: globalStyles.SPACING.xlarge,
+          width: '100%',
+          alignItems: 'center',
+        }}
+      >
+        {/* Buttons */}
+        {index === onboardingData.length - 1 ? (
+          // Show Login and Signup buttons on the last screen
+          <View>
+            <TouchableOpacity style={globalStyles.button} onPress={handleLogin}>
+              <Text style={globalStyles.buttonText}>Login</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={globalStyles.buttonOutline} onPress={handleSignup}>
+              <Text style={globalStyles.buttonOutlineText}>Signup</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // Show Get Started or Continue button
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={item.showGetStarted ? handleContinue : handleContinue}
+          >
+            <Text style={globalStyles.buttonText}>
+              {item.showGetStarted ? 'Get Started' : 'Continue'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Dots */}
+        <View style={globalStyles.dotContainer}>
+          {onboardingData.map((_, dotIndex) => (
+            <View
+              key={dotIndex}
+              style={[
+                globalStyles.dot,
+                dotIndex === 0 && currentIndex === 0
+                  ? globalStyles.dotFirst
+                  : dotIndex === currentIndex
+                  ? globalStyles.dotActive
+                  : globalStyles.dotInactive,
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={globalStyles.container}>
+      <FlatList
+        ref={flatListRef}
+        data={onboardingData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        snapToInterval={width}
+        snapToAlignment="center"
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ height: '100%' }}
+        onMomentumScrollEnd={(event) => {
+          const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentIndex(newIndex);
+        }}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default OnboardingScreen;
+
+
+# --- src\screens\ProfileScreen.js ---
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const ProfileScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Profile Screen</Text>
+  </View>
+);
+
+export default ProfileScreen;
+
+
+# --- src\screens\QRCodeScreen.js ---
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const QRCodeScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>QR Code Screen</Text>
+  </View>
+);
+
+export default QRCodeScreen;
+
+
+# --- src\screens\RecipientScreen.js ---
+// screens/TransactionsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const  RecipientScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text> Recipient Screen</Text>
+  </View>
+);
+
+export default RecipientScreen;
+
+
+# --- src\screens\ScanQRScreen.js ---
+// screens/ScanQRScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const ScanQRScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Scan QR Screen</Text>
+  </View>
+);
+
+export default ScanQRScreen;
+
+
+# --- src\screens\SendScreen.js ---
+// screens/SendScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const SendScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Send Screen</Text>
+  </View>
+);
+
+export default SendScreen;
+
+
+# --- src\screens\SettingsScreen.js ---
+// screens/SettingsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const SettingsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Settings Screen</Text>
+  </View>
+);
+
+export default SettingsScreen;
+
+
+# --- src\screens\SignupScreen.js ---
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  StyleSheet,
+} from "react-native";
+import globalStyles from "../styles/globalStyles";
+
+const SignupScreen = ({ navigation }) => {
+  const [username, setUsername] = useState("");
+  const [cnic, setCnic] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState("Savings");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const accountTypes = [
+    { label: "Savings", value: "Savings" },
+    { label: "Current", value: "Current" },
+  ];
+
+  const validateInputs = () => {
+    if (!username || !cnic || !email || !password) {
+      setErrorMessage("All fields are required");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address");
+      return false;
+    }
+    if (cnic.length !== 13 || isNaN(cnic)) {
+      setErrorMessage("Please enter a valid 13-digit CNIC number");
+      return false;
+    }
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters long");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignup = async () => {
+    setErrorMessage("");
+    setIsLoading(true);
+    try {
+      if (!validateInputs()) {
+        setIsLoading(false);
+        return;
+      }
+      console.log("Registering user", { username, cnic, email, password, accountType });
+      navigation.replace("Login");
+    } catch (error) {
+      setErrorMessage("Signup failed. Please try again.");
+      console.error("Signup error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderDropdownItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => {
+        setAccountType(item.value);
+        setDropdownVisible(false);
+      }}
+    >
+      <Text style={styles.dropdownItemText}>{item.label}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={globalStyles.container}>
+      <Text style={globalStyles.title}>Register</Text>
+
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        editable={!isLoading}
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="CNIC"
+        keyboardType="numeric"
+        value={cnic}
+        onChangeText={setCnic}
+        maxLength={13}
+        editable={!isLoading}
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Email"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        editable={!isLoading}
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        editable={!isLoading}
+      />
+
+      {/* Custom Dropdown */}
+      <TouchableOpacity
+        style={[globalStyles.input, styles.dropdownButton]}
+        onPress={() => !isLoading && setDropdownVisible(true)}
+        disabled={isLoading}
+      >
+        <Text>{accountType}</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={dropdownVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setDropdownVisible(false)}
+        >
+          <View style={styles.dropdownContainer}>
+            <FlatList
+              data={accountTypes}
+              renderItem={renderDropdownItem}
+              keyExtractor={(item) => item.value}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {errorMessage ? <Text style={globalStyles.error}>{errorMessage}</Text> : null}
+
+      <TouchableOpacity
+        style={[globalStyles.button, isLoading && { opacity: 0.7 }]}
+        onPress={handleSignup}
+        disabled={isLoading}
+      >
+        <Text style={globalStyles.buttonText}>
+          {isLoading ? "Signing Up..." : "Sign Up"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Login")}
+        disabled={isLoading}
+      >
+        <Text style={globalStyles.linkText}>Already have an account? Login</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+// Additional styles for the custom dropdown
+const styles = StyleSheet.create({
+  dropdownButton: {
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropdownContainer: {
+    backgroundColor: "white",
+    width: "80%",
+    maxHeight: 200,
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  dropdownItemText: {
+    fontSize: 16,
+  },
+});
+
+export default SignupScreen;
+
+
+# --- src\screens\SplashScreen.js ---
+import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
+import globalStyles from '../styles/globalStyles'; // Adjust the path as needed
+import { useNavigation } from '@react-navigation/native';
+
+const SplashScreen = () => {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.replace('Onboarding'); // Navigate to Onboarding screen
+    }, 3000); // 3 seconds
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
+
+  return (
+    <View style={globalStyles.centeredContainer}>
+      {/* Logo: Two overlapping circles */}
+      <View style={globalStyles.logoContainer}>
+        <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+        <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+      </View>
+
+      {/* Main text: "TransferMe" */}
+      <Text style={globalStyles.textXLarge}>Aut Bank</Text>
+
+      {/* Subtext: "Your Best Money Transfer Partner." */}
+      <Text style={globalStyles.textSmall}>Your Best Money Transfer Partner.</Text>
+
+      {/* Footer text: "Secured by TransferMe." */}
+      <Text
+        style={[
+          globalStyles.textSmall,
+          {
+            position: 'absolute',
+            bottom: globalStyles.SPACING.large, // Use SPACING here
+            fontSize: globalStyles.FONT_SIZES.small,
+            color: globalStyles.COLORS.secondary,
+          },
+        ]}
+      >
+        Secured by TransferMe.
+      </Text>
+    </View>
+  );
+};
+
+export default SplashScreen;
+
+
+# --- src\screens\TransactionsScreen.js ---
+// screens/TransactionsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const TransactionsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Transactions Screen</Text>
+  </View>
+);
+
+export default TransactionsScreen;
+
+
+# --- src\screens\WithdrawScreen.js ---
+// screens/BillsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const WithdrawScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Withdraw Screen</Text>
+  </View>
+);
+
+export default WithdrawScreen;
+
+
+# --- src\screens\SignupStep\SignupStep1.js ---
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { checkUsernameUnique } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep1 = ({ navigation }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateInputs = async () => {
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedFirstName || !trimmedLastName || !trimmedUsername) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+
+    if (trimmedUsername.length < 3) {
+      setErrorMessage('Username must be at least 3 characters');
+      return false;
+    }
+
+    try {
+      const result = await checkUsernameUnique(trimmedUsername);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep1 checkUsernameUnique error:', error);
+      setErrorMessage('Failed to validate username. Please try again.');
+      return false;
+    }
+  };
+
+  const handleNext = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateInputs())) {
+        return;
+      }
+      console.log('SignupStep1: Navigating to SignupStep2 with data:', {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: username.trim(),
+      });
+      navigation.navigate('SignupStep2', {
+        signupData: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: username.trim(),
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep1 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 0 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="First Name"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Last Name"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Username"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            editable={!isLoading}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Checking...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+export default SignupStep1;
+
+
+# --- src\screens\SignupStep\SignupStep2.js ---
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import { checkCnicUnique } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep2 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [cnic, setCnic] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState(new Date(2000, 0, 1));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const formatCnic = (input) => {
+    const digits = input.replace(/\D/g, '');
+    if (digits.length <= 5) return digits;
+    if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12, 13)}`;
+  };
+
+  const validateInputs = async () => {
+    const trimmedCnic = cnic.replace(/\D/g, '');
+    const trimmedPhoneNumber = phoneNumber.trim();
+
+    if (!trimmedCnic || !trimmedPhoneNumber) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+    if (trimmedCnic.length !== 13) {
+      setErrorMessage('Please enter a valid 13-digit CNIC number');
+      return false;
+    }
+
+    try {
+      const result = await checkCnicUnique(trimmedCnic);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('SignupStep2 checkCnicUnique error:', error);
+      setErrorMessage('Failed to validate CNIC. Please try again.');
+      return false;
+    }
+
+    const today = new Date();
+    const age = today.getFullYear() - dateOfBirth.getFullYear() - (today.getMonth() < dateOfBirth.getMonth() || (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
+    if (age < 18) {
+      setErrorMessage('You must be at least 18 years old to sign up');
+      return false;
+    }
+
+    const phoneRegex = /^\+?\d{10,15}$/;
+    if (!phoneRegex.test(trimmedPhoneNumber)) {
+      setErrorMessage('Please enter a valid phone number (10-15 digits, optional + prefix)');
+      return false;
+    }
+    return true;
+  };
+
+  const handleNext = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateInputs())) {
+        return;
+      }
+      const formattedCnic = formatCnic(cnic);
+      const trimmedPhoneNumber = phoneNumber.trim();
+      console.log('SignupStep2: Navigating to SignupStep3 with data:', {
+        ...signupData,
+        cnic: formattedCnic,
+        dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
+        phoneNumber: trimmedPhoneNumber,
+      });
+      navigation.navigate('SignupStep3', {
+        signupData: {
+          ...signupData,
+          cnic: formattedCnic,
+          dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
+          phoneNumber: trimmedPhoneNumber,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep2 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dateOfBirth;
+    setShowDatePicker(Platform.OS === 'ios'); // Auto-close on Android
+    setDateOfBirth(currentDate);
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 1 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="CNIC (e.g., 12345-6789012-3)"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="numeric"
+            value={cnic}
+            onChangeText={(text) => setCnic(formatCnic(text))}
+            maxLength={15} // 13 digits + 2 dashes
+            editable={!isLoading}
+          />
+          <TouchableOpacity
+            style={globalStyles.input}
+            onPress={() => !isLoading && setShowDatePicker(true)}
+            disabled={isLoading}
+          >
+            <Text style={{ color: globalStyles.COLORS.text }}>
+              {format(dateOfBirth, 'yyyy-MM-dd')}
+            </Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <Modal transparent animationType="fade">
+              <View style={styles.datePickerModal}>
+                <View style={styles.datePickerContainer}>
+                  <DateTimePicker
+                    value={dateOfBirth}
+                    mode="date"
+                    display="default"
+                    onChange={onDateChange}
+                    maximumDate={new Date()}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <TouchableOpacity
+                      style={styles.datePickerButton}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <Text style={styles.datePickerButtonText}>Done</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </Modal>
+          )}
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Phone Number (e.g., +1234567890)"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="phone-pad"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            editable={!isLoading}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Checking...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  datePickerModal: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  datePickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  datePickerButton: {
+    marginTop: 10,
+    backgroundColor: globalStyles.COLORS.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  datePickerButtonText: {
+    color: globalStyles.COLORS.white,
+    fontSize: 16,
+  },
+});
+
+export default SignupStep2;
+
+
+# --- src\screens\SignupStep\SignupStep3.js ---
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep3 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateInputs = () => {
+    const trimmedStreetAddress = streetAddress.trim();
+    const trimmedCity = city.trim();
+    const trimmedCountry = country.trim();
+    const trimmedPostalCode = postalCode.trim();
+
+    if (!trimmedStreetAddress || !trimmedCity || !trimmedCountry || !trimmedPostalCode) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+
+    const postalCodeRegex = /^[a-zA-Z0-9]{4,10}$/;
+    if (!postalCodeRegex.test(trimmedPostalCode)) {
+      setErrorMessage('Postal code must be 4-10 alphanumeric characters');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!validateInputs()) {
+        setIsLoading(false);
+        return;
+      }
+      const trimmedData = {
+        streetAddress: streetAddress.trim(),
+        city: city.trim(),
+        country: country.trim(),
+        postalCode: postalCode.trim(),
+      };
+      console.log('SignupStep3: Navigating to SignupStep4 with data:', {
+        ...signupData,
+        ...trimmedData,
+      });
+      navigation.navigate('SignupStep4', {
+        signupData: {
+          ...signupData,
+          ...trimmedData,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep3 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 2 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Street Address"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={streetAddress}
+            onChangeText={setStreetAddress}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="City"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={city}
+            onChangeText={setCity}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Country"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={country}
+            onChangeText={setCountry}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Postal Code"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="default"
+            value={postalCode}
+            onChangeText={setPostalCode}
+            editable={!isLoading}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Processing...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+export default SignupStep3;
+
+
+# --- src\screens\SignupStep\SignupStep4.js ---
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Image } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { checkEmailUniqueAndSendOtp } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep4 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const selectImage = () => {
+    launchImageLibrary(
+      { mediaType: 'photo', maxWidth: 100, maxHeight: 100, quality: 0.5 },
+      (response) => {
+        if (response.didCancel) {
+          console.log('SignupStep4: Image picker cancelled');
+        } else if (response.errorCode) {
+          console.error('SignupStep4 image picker error:', response.errorMessage);
+          setErrorMessage('Failed to select image. Please try again.');
+        } else if (response.assets && response.assets[0].uri) {
+          setProfileImage(response.assets[0].uri);
+          setErrorMessage('');
+        }
+      }
+    );
+  };
+
+  const validateInputs = async () => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+
+    if (!profileImage) {
+      setErrorMessage('Please select a profile picture');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMessage('Please enter a valid email address');
+      return false;
+    }
+
+    try {
+      const result = await checkEmailUniqueAndSendOtp(trimmedEmail);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('SignupStep4 checkEmailUniqueAndSendOtp error:', error);
+      setErrorMessage('Failed to validate email. Please try again.');
+      return false;
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(trimmedPassword)) {
+      setErrorMessage('Password must be at least 8 characters, including an uppercase letter and a number');
+      return false;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNext = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateInputs())) {
+        return;
+      }
+      const trimmedData = { email: email.trim(), password: password.trim(), profileImage };
+      console.log('SignupStep4: Navigating to SignupStep5 with data:', {
+        ...signupData,
+        ...trimmedData,
+      });
+      navigation.navigate('SignupStep5', {
+        signupData: {
+          ...signupData,
+          ...trimmedData,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep4 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 3 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TouchableOpacity
+            style={[globalStyles.button, styles.imageButton, isLoading && { opacity: 0.7 }]}
+            onPress={selectImage}
+            disabled={isLoading}
+          >
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <Text style={globalStyles.buttonText}>Upload Profile Picture</Text>
+            )}
+          </TouchableOpacity>
+          <TextInput
+            style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+            placeholder="Email Address"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            editable={!isLoading}
+          />
+          <View style={{ position: 'relative', width: '100%' }}>
+            <TextInput
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+              placeholder="Password"
+              placeholderTextColor={globalStyles.COLORS.placeholder}
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
+            >
+              <Icon
+                name={showPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={globalStyles.COLORS.placeholder}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={{ position: 'relative', width: '100%' }}>
+            <TextInput
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+              placeholder="Confirm Password"
+              placeholderTextColor={globalStyles.COLORS.placeholder}
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              disabled={isLoading}
+            >
+              <Icon
+                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={globalStyles.COLORS.placeholder}
+              />
+            </TouchableOpacity>
+          </View>
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Checking...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  imageButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: globalStyles.SPACING.medium,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+});
+
+export default SignupStep4;
+
+
+# --- src\screens\SignupStep\SignupStep5.js ---
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { verifyOtp } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep5 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const refs = Array(6).fill().map(() => React.createRef());
+
+  const handleOtpChange = (value, index) => {
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 1) return; // Limit to single digit
+    const newOtp = [...otp];
+    newOtp[index] = trimmedValue;
+    setOtp(newOtp);
+    setErrorMessage(''); // Clear error on input
+
+    if (trimmedValue && index < 5) {
+      refs[index + 1].current.focus();
+    } else if (!trimmedValue && index > 0) {
+      refs[index - 1].current.focus();
+    }
+  };
+
+  const validateOtp = async () => {
+    const otpString = otp.join('');
+    if (otpString.length !== 6 || isNaN(otpString)) {
+      setErrorMessage('Please enter a valid 6-digit OTP');
+      return false;
+    }
+
+    try {
+      const result = await verifyOtp(signupData.email, otpString);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep5 verifyOtp error:', error);
+      setErrorMessage('Failed to verify OTP. Please try again.');
+      return false;
+    }
+  };
+
+  const handleVerify = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateOtp())) {
+        return;
+      }
+      console.log('SignupStep5: Navigating to SignupStep6 with data:', signupData);
+      navigation.navigate('SignupStep6', { signupData });
+    } catch (error) {
+      console.error('SignupStep5 handleVerify error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Email Verification
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 4 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: globalStyles.input.width }}>
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={refs[index]}
+                style={[styles.otpInput, { borderColor: errorMessage ? globalStyles.COLORS.error : globalStyles.COLORS.gray }]}
+                keyboardType="numeric"
+                maxLength={1}
+                value={digit}
+                onChangeText={(value) => handleOtpChange(value, index)}
+                editable={!isLoading}
+              />
+            ))}
+          </View>
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleVerify}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>
+              {isLoading ? 'Verifying...' : 'Verify OTP'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  otpInput: {
+    width: 40,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 8,
+    textAlign: 'center',
+    fontSize: globalStyles.FONT_SIZES.medium,
+    marginHorizontal: 5,
+    color: globalStyles.COLORS.text,
+  },
+});
+
+export default SignupStep5;
+
+
+# --- src\screens\SignupStep\SignupStep6.js ---
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { registerUser } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep6 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const submitData = async () => {
+      try {
+        const userData = {
+          ...signupData,
+          userId: Date.now().toString(),
+          balance: 0,
+          incomingTransactions: [],
+          outgoingTransactions: [],
+          profileImage: signupData.profileImage || '', // Use URI or empty string
+        };
+        console.log('SignupStep6: Registering user with data:', {
+          ...userData,
+          profileImage: userData.profileImage || '[No image]',
+        });
+        const result = await registerUser(userData);
+        if (result.success) {
+          console.log('SignupStep6: User registered successfully');
+          setIsLoading(false);
+        } else {
+          setErrorMessage(result.message);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('SignupStep6 submitData error:', error);
+        setErrorMessage('An error occurred while registering. Please try again.');
+        setIsLoading(false);
+      }
+    };
+
+    submitData();
+  }, [signupData]);
+
+  return (
+    <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+      <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+        <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+        <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+      </View>
+      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+        Account Created
+      </Text>
+      <View style={globalStyles.dotContainer}>
+        {[...Array(6)].map((_, index) => (
+          <View
+            key={index}
+            style={[
+              globalStyles.dot,
+              index === 5 ? globalStyles.dotActive : globalStyles.dotInactive,
+            ]}
+          />
+        ))}
+      </View>
+      {isLoading ? (
+        <Text style={[globalStyles.text, { textAlign: 'center', marginVertical: globalStyles.SPACING.large }]}>
+          Your account is being created. Please wait...
+        </Text>
+      ) : errorMessage ? (
+        <Text style={[globalStyles.textError, { textAlign: 'center', marginVertical: globalStyles.SPACING.large }]}>
+          {errorMessage}
+        </Text>
+      ) : (
+        <View style={styles.messageContainer}>
+          <Text style={styles.successMessage}>
+            Waiting for admin approval, we will notify you via email once approved.
+          </Text>
+        </View>
+      )}
+      {!isLoading && (
+        <TouchableOpacity
+          style={[globalStyles.button, styles.loginButton, { alignSelf: 'center' }]}
+          onPress={() => navigation.replace('Login')}
+        >
+          <Text style={globalStyles.buttonText}>Go to Login</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  messageContainer: {
+    backgroundColor: globalStyles.COLORS.primary,
+    borderRadius: 10,
+    padding: 15,
+    marginVertical: globalStyles.SPACING.large,
+    marginHorizontal: 20,
+    alignItems: 'center',
+  },
+  successMessage: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: globalStyles.COLORS.white,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  loginButton: {
+    backgroundColor: globalStyles.COLORS.secondary,
+    width: '60%',
+  },
+});
+
+export default SignupStep6;
+
+
+# --- src\services\api.js ---
+import { mockUsers, mockRecipients } from './mockData';
+
+export const loginUser = async (email, password) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password.trim();
+      const user = mockUsers.find(
+        (u) => u.email === trimmedEmail && u.password === trimmedPassword
+      );
+      if (user) {
+        console.log('api.js: User logged in:', { email: trimmedEmail, userId: user.userId });
+        resolve({ success: true, user });
+      } else {
+        resolve({ success: false, message: 'Invalid email or password' });
+      }
+    }, 1000);
+  });
+};
+
+export const checkUsernameUnique = async (username) => {
+  try {
+    const trimmedUsername = username.trim();
+    const exists = mockUsers.some((u) => u.username === trimmedUsername);
+    return {
+      success: !exists,
+      message: exists ? 'Username already exists' : '',
+    };
+  } catch (error) {
+    console.error('api.js checkUsernameUnique error:', error);
+    return { success: false, message: 'Failed to check username. Please try again.' };
+  }
+};
+
+export const checkCnicUnique = async (cnic) => {
+  try {
+    const trimmedCnic = cnic.trim();
+    const exists = mockUsers.some((u) => u.cnic === trimmedCnic);
+    return {
+      success: !exists,
+      message: exists ? 'CNIC already registered' : '',
+    };
+  } catch (error) {
+    console.error('api.js checkCnicUnique error:', error);
+    return { success: false, message: 'Failed to check CNIC. Please try again.' };
+  }
+};
+
+export const checkEmailUniqueAndSendOtp = async (email) => {
+  try {
+    const trimmedEmail = email.trim();
+    const exists = mockUsers.some((u) => u.email === trimmedEmail);
+    return {
+      success: !exists,
+      message: exists ? 'Email already registered' : '',
+    };
+  } catch (error) {
+    console.error('api.js checkEmailUniqueAndSendOtp error:', error);
+    return { success: false, message: 'Failed to send OTP. Please try again.' };
+  }
+};
+
+export const verifyOtp = async (email, otp) => {
+  try {
+    return { success: true, message: '' };
+  } catch (error) {
+    console.error('api.js verifyOtp error:', error);
+    return { success: false, message: 'Failed to verify OTP. Please try again.' };
+  }
+};
+
+export const registerUser = async (userData) => {
+  try {
+    mockUsers.push(userData);
+    console.log('api.js: Updated mockUsers:', mockUsers.map(user => ({
+      userId: user.userId,
+      username: user.username,
+      email: user.email,
+      profileImage: user.profileImage ? '[Image]' : '[No image]',
+    })));
+    return { success: true };
+  } catch (error) {
+    console.error('api.js registerUser error:', error);
+    return { success: false, message: 'Registration failed' };
+  }
+};
+
+export const sendOtpForPasswordReset = async (email) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const trimmedEmail = email.trim();
+      const user = mockUsers.find((u) => u.email === trimmedEmail);
+      if (user) {
+        resolve({ success: true, message: 'OTP sent successfully' });
+      } else {
+        resolve({ success: false, message: 'Email not found' });
+      }
+    }, 1000);
+  });
+};
+
+export const verifyOtpAndResetPassword = async (email, otp, newPassword) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      if (otp === '123456') {
+        const trimmedEmail = email.trim();
+        const user = mockUsers.find((u) => u.email === trimmedEmail);
+        if (user) {
+          user.password = newPassword.trim();
+          resolve({ success: true, message: 'Password reset successfully' });
+        } else {
+          resolve({ success: false, message: 'Email not found' });
+        }
+      } else {
+        resolve({ success: false, message: 'Invalid OTP' });
+      }
+    }, 1000);
+  });
+};
+
+export const fetchUserData = async (email) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const trimmedEmail = email.trim();
+      const user = mockUsers.find((u) => u.email === trimmedEmail);
+      if (user) {
+        resolve({ success: true, user });
+      } else {
+        resolve({ success: false, message: 'User not found' });
+      }
+    }, 1000);
+  });
+};
+
+export const fetchRecipients = async () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ success: true, recipients: mockRecipients });
+    }, 1000);
+  });
+};
+
+
+# --- src\services\mockData.js ---
+// services/mockData.js
+export const mockUsers = [
+  {
+    userId: 1,
+    username: 'manidoe',
+    firstName: 'Mani',
+    lastName: 'Doe',
+    email: 'mani.doe@example.com',
+    password: 'password123',
+    cnic: '12345-6789012-3',
+    accountType: 'Savings',
+    balance: 285856.20,
+    phoneNumber: '+1234567890',
+    streetAddress: '123 Main St',
+    city: 'Karachi',
+    country: 'Pakistan',
+    postalCode: '75000',
+    dateOfBirth: '1990-01-15',
+    isActive: true,
+    createdAt: '2025-01-01T10:00:00Z',
+    profileImage: require('../Assets/images/users/user1.jpg'),
+    incomingTransactions: [
+      {
+        id: 1,
+        senderId: 2,
+        senderName: 'Johnny Bairstow',
+        amount: 54.23,
+        date: '2020-12-23',
+        referenceNumber: 'TRX001',
+      },
+      {
+        id: 2,
+        senderId: 3,
+        senderName: 'Charles Smith',
+        amount: 62.54,
+        date: '2020-12-22',
+        referenceNumber: 'TRX002',
+      },
+    ],
+    outgoingTransactions: [
+      {
+        id: 1,
+        recipientId: 4,
+        recipientName: 'John Brown',
+        amount: 396.84,
+        date: '2021-12-12',
+        referenceNumber: 'TRX003',
+      },
+      {
+        id: 2,
+        recipientId: 5,
+        recipientName: 'Mellony Jane',
+        amount: 45.21,
+        date: '2021-12-12',
+        referenceNumber: 'TRX004',
+      },
+    ],
+  },
+  {
+    userId: 2,
+    username: 'johnnyb',
+    firstName: 'Johnny',
+    lastName: 'Bairstow',
+    email: 'johnny.b@example.com',
+    password: 'pass456',
+    cnic: '54321-0987654-3',
+    accountType: 'Current',
+    balance: 15000.75,
+    phoneNumber: '+1987654321',
+    streetAddress: '456 Oak Ave',
+    city: 'Lahore',
+    country: 'Pakistan',
+    postalCode: '54000',
+    dateOfBirth: '1985-03-22',
+    isActive: true,
+    createdAt: '2025-02-01T12:00:00Z',
+    profileImage: require('../Assets/images/users/user2.jpg'),
+    incomingTransactions: [],
+    outgoingTransactions: [
+      {
+        id: 3,
+        recipientId: 1,
+        recipientName: 'Mani Doe',
+        amount: 54.23,
+        date: '2020-12-23',
+        referenceNumber: 'TRX001',
+      },
+    ],
+  },
+  {
+    userId: 3,
+    username: 'charless',
+    firstName: 'Charles',
+    lastName: 'Smith',
+    email: 'charles.s@example.com',
+    password: 'pass789',
+    cnic: '67890-1234567-8',
+    accountType: 'Savings',
+    balance: 7500.30,
+    phoneNumber: '+1122334455',
+    streetAddress: '789 Pine Rd',
+    city: 'Islamabad',
+    country: 'Pakistan',
+    postalCode: '44000',
+    dateOfBirth: '1992-07-10',
+    isActive: false,
+    createdAt: '2025-03-01T15:00:00Z',
+    profileImage: require('../Assets/images/users/user3.jpg'),
+    incomingTransactions: [],
+    outgoingTransactions: [
+      {
+        id: 4,
+        recipientId: 1,
+        recipientName: 'Mani Doe',
+        amount: 62.54,
+        date: '2020-12-22',
+        referenceNumber: 'TRX002',
+      },
+    ],
+  },
+];
+
+export const mockRecipients = [
+  {
+    recipientId: 2,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
+    recipientId: 3,
+    name: 'Charles Smith',
+    email: 'charles.s@example.com',
+    image: require('../Assets/images/recipients/recipients2.jpg'),
+  },
+  {
+    recipientId: 4,
+    name: 'John Brown',
+    email: 'john.brown@example.com',
+    image: require('../Assets/images/recipients/recipients3.jpg'),
+  },
+  {
+    recipientId: 5,
+    name: 'Mellony Jane',
+    email: 'mellony.j@example.com',
+    image: require('../Assets/images/recipients/recipients4.jpg'),
+  },
+];
+
+
+# --- src\services\socket.js ---
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '@env';
+
+let socket = null;
+
+// Initialize WebSocket connection
+export const initializeSocket = (token) => {
+  if (socket) {
+    return socket;
+  }
+
+  socket = io(SOCKET_URL, {
+    auth: { token },
+    transports: ['websocket'],
+  });
+
+  socket.on('connect', () => {
+    console.log('Socket connected');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected');
+  });
+
+  socket.on('connect_error', (error) => {
+    console.log('Socket connection error:', error.message);
+  });
+
+  return socket;
+};
+
+// Subscribe to notifications
+export const subscribeToNotifications = (callback) => {
+  if (socket) {
+    socket.on('notification', callback);
+  }
+};
+
+// Unsubscribe from notifications
+export const unsubscribeFromNotifications = () => {
+  if (socket) {
+    socket.off('notification');
+  }
+};
+
+// Disconnect socket
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+};
+
+
+# --- src\styles\globalStyles.js ---
+import { StyleSheet, Dimensions } from 'react-native';
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('screen');
+
+// Color palette
+const COLORS = {
+  primary: '#1E3A8A',
+  secondary: '#60A5FA',
+  background: '#FFFFFF',
+  text: '#333333',
+  placeholder: '#A9A9A9', // Ensure this is a visible color
+  success: '#28A745',
+  danger: '#DC3545',
+  white: '#FFFFFF',
+  black: '#000000',
+  gray: '#E5E7EB',
+  dotActive: '#60A5FA',
+  dotInactive: '#D1D5DB',
+};
+
+// Font sizes
+const FONT_SIZES = {
+  tiny: 10,
+  small: 12,
+  medium: 16,
+  large: 20,
+  xlarge: 32,
+};
+
+// Common spacing
+const SPACING = {
+  tiny: 4,
+  small: 8,
+  medium: 16,
+  large: 24,
+  xlarge: 32,
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SPACING.medium,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  text: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+  },
+  textTiny: {
+    fontSize: FONT_SIZES.tiny,
+    color: COLORS.text,
+  },
+  textSmall: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.secondary,
+  },
+  textSmallGray: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.placeholder,
+    textAlign: 'center',
+  },
+  textLarge: {
+    fontSize: FONT_SIZES.large,
+    color: COLORS.text,
+    fontWeight: 'bold',
+  },
+  textXLarge: {
+    fontSize: FONT_SIZES.xlarge,
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  textXLargeBlack: {
+    fontSize: FONT_SIZES.xlarge,
+    color: COLORS.text,
+    fontWeight: 'bold',
+  },
+  textError: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.danger,
+    marginBottom: SPACING.small,
+  },
+  textSuccess: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.success,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.medium,
+  },
+  circle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  circlePrimary: {
+    backgroundColor: COLORS.primary,
+    marginRight: -20,
+  },
+  circleSecondary: {
+    backgroundColor: COLORS.secondary,
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.medium,
+    paddingHorizontal: SPACING.xlarge,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.small,
+    width: width * 0.7,
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.medium,
+    fontWeight: '600',
+  },
+  buttonSecondary: {
+    backgroundColor: COLORS.secondary,
+    paddingVertical: SPACING.medium,
+    paddingHorizontal: SPACING.xlarge,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.small,
+    width: width * 0.7,
+  },
+  buttonOutline: {
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    paddingVertical: SPACING.medium,
+    paddingHorizontal: SPACING.xlarge,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.small,
+    width: width * 0.7,
+  },
+  buttonOutlineText: {
+    color: COLORS.primary,
+    fontSize: FONT_SIZES.medium,
+    fontWeight: '600',
+  },
+  dotContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: SPACING.medium,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: SPACING.tiny,
+  },
+  dotActive: {
+    backgroundColor: COLORS.dotActive,
+  },
+  dotInactive: {
+    backgroundColor: COLORS.dotInactive,
+  },
+  dotFirst: {
+    backgroundColor: COLORS.danger,
+  },
+  placeholderLogo: {
+    fontSize: 100,
+    color: COLORS.primary,
+    marginBottom: SPACING.medium,
+  },
+  input: {
+  width: '100%',
+  height: 50,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 8,
+  paddingHorizontal: 10,
+  marginVertical: 10,
+  fontSize: 16,
+},
+  inputFocused: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  inputError: {
+    borderColor: COLORS.danger,
+    borderWidth: 1,
+  },
+  inputLabel: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    marginBottom: SPACING.tiny,
+  },
+  linkText: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    marginTop: SPACING.medium,
+  },
+});
+
+const globalStyles = {
+  ...styles,
+  SPACING,
+  COLORS,
+  FONT_SIZES,
+};
+
+export default globalStyles;

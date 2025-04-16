@@ -11,18 +11,17 @@ const SignupStep6 = ({ navigation, route }) => {
   useEffect(() => {
     const submitData = async () => {
       try {
-        const defaultImage = require('../Assets/images/users/user1.jpg');
         const userData = {
           ...signupData,
           userId: Date.now().toString(),
           balance: 0,
           incomingTransactions: [],
           outgoingTransactions: [],
-          profileImage: defaultImage,
+          profileImage: signupData.profileImage || '', // Use URI or empty string
         };
         console.log('SignupStep6: Registering user with data:', {
           ...userData,
-          profileImage: '[Image require]', // Avoid logging require object
+          profileImage: userData.profileImage || '[No image]',
         });
         const result = await registerUser(userData);
         if (result.success) {

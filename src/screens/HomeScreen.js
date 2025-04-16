@@ -1,4 +1,3 @@
-// src/screens/HomeScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -13,7 +12,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { fetchRecipients } from '../services/api';
 
 const { height } = Dimensions.get('window');
 
@@ -21,7 +19,6 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [user, setUser] = useState(route.params?.user);
-  const [recipients, setRecipients] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
@@ -29,19 +26,18 @@ const HomeScreen = () => {
     console.log('HomeScreen user:', JSON.stringify(user, null, 2));
     console.log('HomeScreen user keys:', user ? Object.keys(user) : 'undefined');
 
-    // Update user and transactions
     if (route.params?.user) {
       setUser(route.params.user);
       setTransactions([
         ...(route.params.user?.incomingTransactions || []).map((t) => ({
-          id: `incoming-${t.id}`, // Unique key
+          id: `incoming-${t.id}`,
           type: 'credit',
           description: `From ${t.senderName}`,
           amount: t.amount,
           date: t.date,
         })),
         ...(route.params.user?.outgoingTransactions || []).map((t) => ({
-          id: `outgoing-${t.id}`, // Unique key
+          id: `outgoing-${t.id}`,
           type: 'debit',
           description: `To ${t.recipientName}`,
           amount: t.amount,
@@ -50,15 +46,6 @@ const HomeScreen = () => {
       ]);
     }
 
-    // Fetch recipients
-    fetchRecipients().then((response) => {
-      console.log('HomeScreen recipients:', JSON.stringify(response.recipients, null, 2));
-      if (response.success) {
-        setRecipients(response.recipients);
-      }
-    });
-
-    // Navigation listener
     const unsubscribe = navigation.addListener('focus', () => {
       console.log('HomeScreen navigation focus, route.params:', JSON.stringify(route.params, null, 2));
       if (route.params?.user) {
@@ -108,18 +95,6 @@ const HomeScreen = () => {
     </TouchableOpacity>
   );
 
-  const RecipientItem = ({ item }) => (
-    <View style={styles.recipientItem}>
-      <Image
-        source={item?.image}
-        style={styles.recipientAvatar}
-        defaultSource={{ uri: 'https://via.placeholder.com/40' }}
-      />
-      <Text style={styles.recipientName}>{item?.name || 'Unknown'}</Text>
-      <Text style={styles.recipientEmail}>{item?.email || ''}</Text>
-    </View>
-  );
-
   const TransactionItem = ({ item }) => (
     <View style={styles.transaction}>
       <Text style={[styles.transactionIcon, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
@@ -159,18 +134,21 @@ const HomeScreen = () => {
             <View style={styles.userAvatar}>
               {user?.profileImage ? (
                 <Image
-                  source={user.profileImage}
+                  source={typeof user.profileImage === 'string' ? { uri: user.profileImage } : user.profileImage}
                   style={styles.userAvatarImage}
-                  defaultSource={{ uri: 'https://via.placeholder.com/40' }}
+                  resizeMode="cover"
+                  onError={(e) => console.log('HomeScreen image error:', e.nativeEvent.error)}
                 />
               ) : (
-                <Text style={styles.userInitial}>
-                  {user?.username?.[0]?.toUpperCase() || 'U'}
-                </Text>
+                <Image
+                  source={require('../Assets/images/users/user2.jpg')}
+                  style={styles.userAvatarImage}
+                  resizeMode="cover"
+                />
               )}
             </View>
             <View style={styles.userTextContainer}>
-              <Text style={styles.username}>{user?.username || 'User'}</Text>
+              <Text style={styles.username}>{user?.firstName || 'User'}</Text>
               <Text style={styles.greeting}>Let's save your money</Text>
             </View>
           </View>
@@ -198,17 +176,16 @@ const HomeScreen = () => {
 
         <View style={styles.recipientsContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Latest Recipients</Text>
+            <Text style={styles.sectionTitle}>Recipients</Text>
             <TouchableOpacity onPress={() => navigation.navigate('RecipientScreen')}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
           <FlatList
-            data={recipients}
-            renderItem={RecipientItem}
-            keyExtractor={(item) => item.recipientId.toString()}
+            data={[]}
             horizontal
-            showsHorizontalScrollIndicator={false}
+            renderItem={() => null}
+            keyExtractor={() => ''}
           />
         </View>
 
@@ -308,12 +285,6 @@ const styles = StyleSheet.create({
   },
   serviceText: { fontSize: 12, color: '#2c3e50', marginTop: 4 },
   recipientsContainer: { padding: 16 },
-  recipientItem: { alignItems: 'center', marginRight: 12 },
-  recipientAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -337,8 +308,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  recipientName: { fontSize: 12, color: '#2c3e50', marginTop: 4 },
-  recipientEmail: { fontSize: 10, color: '#7f8c8d', marginTop: 2 },
   transactionsContainer: { padding: 16 },
   transaction: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   transactionIcon: { fontSize: 20, marginRight: 8 },
