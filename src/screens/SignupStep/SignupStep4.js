@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Image,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { checkEmailUniqueAndSendOtp } from '../../services/api';
+import { checkUniqueness } from '../../services/userService';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep4 = ({ navigation, route }) => {
@@ -11,6 +21,7 @@ const SignupStep4 = ({ navigation, route }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [accountType, setAccountType] = useState(null); // Savings or Current
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -18,7 +29,7 @@ const SignupStep4 = ({ navigation, route }) => {
 
   const selectImage = () => {
     launchImageLibrary(
-      { mediaType: 'photo', maxWidth: 100, maxHeight: 100, quality: 0.5 },
+      { mediaType: 'photo', quality: 1.0 },
       (response) => {
         if (response.didCancel) {
           console.log('SignupStep4: Image picker cancelled');
@@ -39,12 +50,22 @@ const SignupStep4 = ({ navigation, route }) => {
     const trimmedConfirmPassword = confirmPassword.trim();
 
     if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
-      setErrorMessage('All fields are required');
+      setErrorMessage('Email, password, and confirm password are required');
       return false;
     }
 
     if (!profileImage) {
       setErrorMessage('Please select a profile picture');
+      return false;
+    }
+
+    if (!accountType) {
+      setErrorMessage('Please select an account type');
+      return false;
+    }
+
+    if (!['Savings', 'Current'].includes(accountType)) {
+      setErrorMessage('Account type must be Savings or Current');
       return false;
     }
 
@@ -55,9 +76,9 @@ const SignupStep4 = ({ navigation, route }) => {
     }
 
     try {
-      const result = await checkEmailUniqueAndSendOtp(trimmedEmail);
-      if (!result.success) {
-        setErrorMessage(result.message);
+      const result = await checkUniqueness('Email', trimmedEmail);
+      if (!result.success || !result.data?.is_unique) {
+        setErrorMessage('Email is already taken');
         return false;
       }
     } catch (error) {
@@ -87,7 +108,8 @@ const SignupStep4 = ({ navigation, route }) => {
       if (!(await validateInputs())) {
         return;
       }
-      const trimmedData = { email: email.trim(), password: password.trim(), profileImage };
+      // const trimmedData = { email: email.trim(), password: password.trim(), profileImage, AccountType: accountType }; used when image implement
+      const trimmedData = { email: email.trim(), password: password.trim(),  AccountType: accountType };
       console.log('SignupStep4: Navigating to SignupStep5 with data:', {
         ...signupData,
         ...trimmedData,
@@ -105,6 +127,21 @@ const SignupStep4 = ({ navigation, route }) => {
       setIsLoading(false);
     }
   };
+
+  const Checkbox = ({ label, value, selected, onSelect }) => (
+    <TouchableOpacity
+      style={styles.checkboxContainer}
+      onPress={() => onSelect(value)}
+      disabled={isLoading}
+    >
+      <Icon
+        name={selected ? 'check-box' : 'check-box-outline-blank'}
+        size={24}
+        color={selected ? globalStyles.COLORS.primary : globalStyles.COLORS.placeholder}
+      />
+      <Text style={[styles.checkboxLabel, { color: globalStyles.COLORS.text }]}>{label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -200,6 +237,25 @@ const SignupStep4 = ({ navigation, route }) => {
               />
             </TouchableOpacity>
           </View>
+          <View style={styles.accountTypeContainer}>
+            <Text style={[globalStyles.text, { marginBottom: globalStyles.SPACING.small }]}>
+              Account Type
+            </Text>
+            <View style={styles.checkboxRow}>
+              <Checkbox
+                label="Savings"
+                value="Savings"
+                selected={accountType === 'Savings'}
+                onSelect={setAccountType}
+              />
+              <Checkbox
+                label="Current"
+                value="Current"
+                selected={accountType === 'Current'}
+                onSelect={setAccountType}
+              />
+            </View>
+          </View>
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
           <TouchableOpacity
             style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
@@ -234,6 +290,24 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
+  },
+  accountTypeContainer: {
+    width: '100%',
+    marginTop: globalStyles.SPACING.medium,
+    marginBottom: globalStyles.SPACING.medium,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: globalStyles.SPACING.medium,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    fontSize: globalStyles.FONT_SIZES.medium,
+    marginLeft: globalStyles.SPACING.small,
   },
 });
 

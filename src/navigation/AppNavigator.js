@@ -1,19 +1,19 @@
-// src/navigation/AppNavigator.js
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import LoginScreen from '../screens/LoginScreen';
-import SplashScreen from '../screens/SplashScreen';
-import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import { AuthContext } from '../context/AuthContext';
+import WelcomeScreen from '../screens/WelcomeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import LoginScreen from '../screens/LoginScreen';
 import SignupStep1 from '../screens/SignupStep/SignupStep1';
 import SignupStep2 from '../screens/SignupStep/SignupStep2';
 import SignupStep3 from '../screens/SignupStep/SignupStep3';
 import SignupStep4 from '../screens/SignupStep/SignupStep4';
 import SignupStep5 from '../screens/SignupStep/SignupStep5';
 import SignupStep6 from '../screens/SignupStep/SignupStep6';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SendScreen from '../screens/SendScreen';
 import DepositScreen from '../screens/DepositScreen';
@@ -28,12 +28,22 @@ import SettingsScreen from '../screens/SettingsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ScanQRScreen from '../screens/ScanQRScreen';
 import RecipientScreen from '../screens/RecipientScreen';
+import SplashScreen from '../screens/SplashScreen';
+import { View, Text } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const AppTabs = ({ route }) => {
-  const user = route.params?.user;
+const AppTabs = () => {
+  const context = useContext(AuthContext);
+  const user = context?.user;
+
+  console.log('AppTabs: Rendering, user:', user ? Object.keys(user) : 'undefined', 'context:', !!context);
+
+  if (!user) {
+    console.log('AppTabs: No user, skipping render');
+    return null; // Prevent rendering tabs if not authenticated
+  }
 
   return (
     <Tab.Navigator
@@ -49,17 +59,13 @@ const AppTabs = ({ route }) => {
       <Tab.Screen
         name="HomeTab"
         component={HomeScreen}
-        initialParams={{ user }}
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => <Icon name="home" size={24} color={color} />,
         }}
-        listeners={({ navigation }) => ({
-          focus: () => {
-            console.log('AppTabs: HomeTab focused, passing user:', JSON.stringify(user, null, 2));
-            navigation.setParams({ user });
-          },
-        })}
+        listeners={{
+          focus: () => console.log('AppTabs: HomeTab focused, user:', user ? Object.keys(user) : 'undefined'),
+        }}
       />
       <Tab.Screen
         name="HistoryTab"
@@ -98,58 +104,104 @@ const AppTabs = ({ route }) => {
 };
 
 const AppNavigator = () => {
+  const context = useContext(AuthContext);
+  const user = context?.user;
+  const isLoading = context?.isLoading;
+
+  console.log('AppNavigator: Rendering, isLoading:', isLoading, 'user:', user ? Object.keys(user) : 'undefined', 'context:', !!context);
+
+  if (!context) {
+    console.error('AppNavigator: AuthContext is undefined');
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Error"
+            component={() => (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Authentication error. Please restart the app.</Text>
+              </View>
+            )}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
+  if (isLoading) {
+    console.log('AppNavigator: Showing splash screen due to isLoading');
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Splash"
+            component={SplashScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Welcome"
+        initialRouteName={user ? 'Home' : 'Welcome'}
         screenOptions={{ headerShown: false }}
       >
-        <Stack.Screen
-          name="Welcome"
-          component={SplashScreen}
-          listeners={{
-            focus: () => console.log('Navigation: Focused on Welcome'),
-          }}
-        />
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
-          listeners={{
-            focus: () => console.log('Navigation: Focused on Onboarding'),
-          }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          listeners={{
-            focus: () => console.log('Navigation: Focused on Login'),
-          }}
-        />
-        <Stack.Screen name="SignupStep1" component={SignupStep1} />
-        <Stack.Screen name="SignupStep2" component={SignupStep2} />
-        <Stack.Screen name="SignupStep3" component={SignupStep3} />
-        <Stack.Screen name="SignupStep4" component={SignupStep4} />
-        <Stack.Screen name="SignupStep5" component={SignupStep5} />
-        <Stack.Screen name="SignupStep6" component={SignupStep6} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen
-          name="Home"
-          component={AppTabs}
-          listeners={{
-            focus: (e) => {
-              console.log('Navigation: Focused on Home (AppTabs), params:', JSON.stringify(e.target?.params, null, 2));
-            },
-          }}
-        />
-        <Stack.Screen name="Send" component={SendScreen} />
-        <Stack.Screen name="Deposit" component={DepositScreen} />
-        <Stack.Screen name="Loan" component={LoanScreen} />
-        <Stack.Screen name="Transactions" component={TransactionsScreen} />
-        <Stack.Screen name="Withdraw" component={WithdrawScreen} />
-        <Stack.Screen name="Cards" component={CardsScreen} />
-        <Stack.Screen name="QRCode" component={QRCodeScreen} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="RecipientScreen" component={RecipientScreen} />
+        {!user ? (
+          <>
+            <Stack.Screen
+              name="Welcome"
+              component={SplashScreen}
+              listeners={{
+                focus: () => console.log('Navigation: Focused on Welcome'),
+              }}
+            />
+            <Stack.Screen
+              name="Onboarding"
+              component={OnboardingScreen}
+              listeners={{
+                focus: () => console.log('Navigation: Focused on Onboarding'),
+              }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              listeners={{
+                focus: () => console.log('Navigation: Focused on Login'),
+              }}
+            />
+            <Stack.Screen name="SignupStep1" component={SignupStep1} />
+            <Stack.Screen name="SignupStep2" component={SignupStep2} />
+            <Stack.Screen name="SignupStep3" component={SignupStep3} />
+            <Stack.Screen name="SignupStep4" component={SignupStep4} />
+            <Stack.Screen name="SignupStep5" component={SignupStep5} />
+            <Stack.Screen name="SignupStep6" component={SignupStep6} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="Home"
+              component={AppTabs}
+              listeners={{
+                focus: () =>
+                  console.log('Navigation: Focused on Home (AppTabs), user:', user ? Object.keys(user) : 'undefined'),
+              }}
+            />
+            <Stack.Screen name="Send" component={SendScreen} />
+            <Stack.Screen name="Deposit" component={DepositScreen} />
+            <Stack.Screen name="Loan" component={LoanScreen} />
+            <Stack.Screen name="Transactions" component={TransactionsScreen} />
+            <Stack.Screen name="Withdraw" component={WithdrawScreen} />
+            <Stack.Screen name="Cards" component={CardsScreen} />
+            <Stack.Screen name="QRCode" component={QRCodeScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="RecipientScreen" component={RecipientScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

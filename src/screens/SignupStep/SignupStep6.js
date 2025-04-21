@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { registerUser } from '../../services/api';
+import { registerUser } from '../../services/userService';
+import { formatCnic } from '../../utils/helpers';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep6 = ({ navigation, route }) => {
@@ -12,28 +13,36 @@ const SignupStep6 = ({ navigation, route }) => {
     const submitData = async () => {
       try {
         const userData = {
-          ...signupData,
-          userId: Date.now().toString(),
-          balance: 0,
-          incomingTransactions: [],
-          outgoingTransactions: [],
-          profileImage: signupData.profileImage || '', // Use URI or empty string
+          Username: signupData.username,
+          FirstName: signupData.firstName,
+          LastName: signupData.lastName,
+          StreetAddress: signupData.streetAddress,
+          City: signupData.city,
+          Country: signupData.country,
+          PostalCode: signupData.postalCode,
+          PhoneNumber: signupData.phoneNumber,
+          CNIC: formatCnic(signupData.cnic),
+          Email: signupData.email,
+          Password: signupData.password,
+          AccountType: signupData.AccountType, 
+          DateOfBirth: signupData.dateOfBirth,
+          IsActive: false,
         };
-        console.log('SignupStep6: Registering user with data:', {
-          ...userData,
-          profileImage: userData.profileImage || '[No image]',
-        });
+        console.log('SignupStep6: Sending userData:', userData);
+        
         const result = await registerUser(userData);
         if (result.success) {
           console.log('SignupStep6: User registered successfully');
           setIsLoading(false);
         } else {
+          
           setErrorMessage(result.message);
           setIsLoading(false);
         }
       } catch (error) {
         console.error('SignupStep6 submitData error:', error);
-        setErrorMessage('An error occurred while registering. Please try again.');
+        
+        setErrorMessage(error.message || 'An error occurred while registering');
         setIsLoading(false);
       }
     };

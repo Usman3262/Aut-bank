@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { checkUsernameUnique } from '../../services/api';
+import { checkUniqueness } from '../../services/userService';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep1 = ({ navigation }) => {
@@ -26,11 +26,13 @@ const SignupStep1 = ({ navigation }) => {
     }
 
     try {
-      const result = await checkUsernameUnique(trimmedUsername);
-      if (!result.success) {
-        setErrorMessage(result.message);
+      const result = await checkUniqueness('Username', trimmedUsername);
+      
+      if (!result.success || !result.data?.is_unique) {
+        setErrorMessage('Username is already taken.');
         return false;
       }
+    
       return true;
     } catch (error) {
       console.error('SignupStep1 checkUsernameUnique error:', error);

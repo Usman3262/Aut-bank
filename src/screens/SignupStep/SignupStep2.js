@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, Modal,
+  StyleSheet, KeyboardAvoidingView, ScrollView, Platform
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
-import { checkCnicUnique } from '../../services/api';
+import { checkUniqueness } from '../../services/userService';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep2 = ({ navigation, route }) => {
@@ -22,32 +25,23 @@ const SignupStep2 = ({ navigation, route }) => {
   };
 
   const validateInputs = async () => {
-    const trimmedCnic = cnic.replace(/\D/g, '');
     const trimmedPhoneNumber = phoneNumber.trim();
+    const formattedCnic = formatCnic(cnic);
 
-    if (!trimmedCnic || !trimmedPhoneNumber) {
+    if (!formattedCnic || !trimmedPhoneNumber) {
       setErrorMessage('All fields are required');
       return false;
     }
-    if (trimmedCnic.length !== 13) {
-      setErrorMessage('Please enter a valid 13-digit CNIC number');
-      return false;
-    }
 
-    try {
-      const result = await checkCnicUnique(trimmedCnic);
-      if (!result.success) {
-        setErrorMessage(result.message);
-        return false;
-      }
-    } catch (error) {
-      console.error('SignupStep2 checkCnicUnique error:', error);
-      setErrorMessage('Failed to validate CNIC. Please try again.');
+    if (!/^\d{5}-\d{7}-\d{1}$/.test(formattedCnic)) {
+      setErrorMessage('Please enter CNIC in format 12345-1234567-1');
       return false;
     }
 
     const today = new Date();
-    const age = today.getFullYear() - dateOfBirth.getFullYear() - (today.getMonth() < dateOfBirth.getMonth() || (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
+    const age = today.getFullYear() - dateOfBirth.getFullYear() -
+      (today.getMonth() < dateOfBirth.getMonth() ||
+      (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
     if (age < 18) {
       setErrorMessage('You must be at least 18 years old to sign up');
       return false;
@@ -58,24 +52,38 @@ const SignupStep2 = ({ navigation, route }) => {
       setErrorMessage('Please enter a valid phone number (10-15 digits, optional + prefix)');
       return false;
     }
-    return true;
+
+    try {
+      const result = await checkUniqueness('CNIC', formattedCnic);
+      if (!result.success || !result.data?.is_unique) {
+        setErrorMessage('CNIC is already taken.');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep2 checkCnicUnique error:', error);
+      setErrorMessage('Failed to validate CNIC. Please try again.');
+      return false;
+    }
   };
 
   const handleNext = async () => {
     setErrorMessage('');
     setIsLoading(true);
     try {
-      if (!(await validateInputs())) {
-        return;
-      }
+      const isValid = await validateInputs();
+      if (!isValid) return;
+
       const formattedCnic = formatCnic(cnic);
       const trimmedPhoneNumber = phoneNumber.trim();
+
       console.log('SignupStep2: Navigating to SignupStep3 with data:', {
         ...signupData,
         cnic: formattedCnic,
         dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
         phoneNumber: trimmedPhoneNumber,
       });
+
       navigation.navigate('SignupStep3', {
         signupData: {
           ...signupData,
@@ -124,6 +132,7 @@ const SignupStep2 = ({ navigation, route }) => {
               />
             ))}
           </View>
+
           <TextInput
             style={globalStyles.input}
             placeholder="CNIC (e.g., 12345-6789012-3)"
@@ -131,9 +140,10 @@ const SignupStep2 = ({ navigation, route }) => {
             keyboardType="numeric"
             value={cnic}
             onChangeText={(text) => setCnic(formatCnic(text))}
-            maxLength={15} // 13 digits + 2 dashes
+            maxLength={15}
             editable={!isLoading}
           />
+
           <TouchableOpacity
             style={globalStyles.input}
             onPress={() => !isLoading && setShowDatePicker(true)}
@@ -143,6 +153,7 @@ const SignupStep2 = ({ navigation, route }) => {
               {format(dateOfBirth, 'yyyy-MM-dd')}
             </Text>
           </TouchableOpacity>
+
           {showDatePicker && (
             <Modal transparent animationType="fade">
               <View style={styles.datePickerModal}>
@@ -166,6 +177,7 @@ const SignupStep2 = ({ navigation, route }) => {
               </View>
             </Modal>
           )}
+
           <TextInput
             style={globalStyles.input}
             placeholder="Phone Number (e.g., +1234567890)"
@@ -175,7 +187,9 @@ const SignupStep2 = ({ navigation, route }) => {
             onChangeText={setPhoneNumber}
             editable={!isLoading}
           />
+
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+
           <TouchableOpacity
             style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
             onPress={handleNext}

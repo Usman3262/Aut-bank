@@ -1,68 +1,48 @@
-import React, { useState } from 'react';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
-import { loginUser } from '../services/api';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { AuthContext } from '../context/AuthContext';
+import { UserLoginSchema } from '../utils/validators';
 import globalStyles from '../styles/globalStyles';
+import initializeWebSocket from '../services/socket';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
+  const { login } = useContext(AuthContext);
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const validateInputs = () => {
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-    if (!trimmedEmail || !trimmedPassword) {
-      setErrorMessage('All fields are required');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      setErrorMessage('Please enter a valid email address');
-      return false;
-    }
-    if (trimmedPassword.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long');
-      return false;
-    }
-    return true;
-  };
-
   const handleLogin = async () => {
     setErrorMessage('');
-    if (!validateInputs()) return;
-
     setIsLoading(true);
     try {
-      const result = await loginUser(email, password);
-      console.log('LoginScreen login result:', JSON.stringify(result, null, 2));
-      if (result.success && result.user) {
-        const user = {
-          userId: result.user.userId || '0',
-          username: result.user.username || 'Unknown',
-          balance: result.user.balance ?? 0,
-          incomingTransactions: result.user.incomingTransactions || [],
-          outgoingTransactions: result.user.outgoingTransactions || [],
-          email: result.user.email || email,
-          ...result.user,
-          
-        };
-        console.log('LoginScreen user keys:', Object.keys(user));
-        if (!user.username || user.balance === undefined) {
-          console.warn('LoginScreen warning: Missing username or balance');
-          setErrorMessage('User data incomplete');
-          return;
+      // Validate input
+      await UserLoginSchema.validate({ login_id: loginId, Password: password });
+      console.log('LoginScreen: Sending login request:', { login_id: loginId, Password: password });
+
+      // Call login from AuthContext
+      const result = await login(loginId, password);
+      if (result.success) {
+        console.log('LoginScreen: Login successful');
+        // Initialize WebSocket
+        const ws = await initializeWebSocket();
+        if (ws) {
+          console.log('LoginScreen: WebSocket initialized');
+        } else {
+          console.warn('LoginScreen: Failed to initialize WebSocket');
         }
-        console.log('LoginScreen user to navigate:', JSON.stringify(user, null, 2));
-        navigation.replace('Home', { user });
+        // Navigate to Home
+        navigation.replace('Home');
       } else {
-        setErrorMessage(result.message || 'Login failed');
+        console.log('LoginScreen: Login failed:', result.message);
+        setErrorMessage(result.message);
       }
     } catch (error) {
-      console.error('LoginScreen error:', error);
-      setErrorMessage('An error occurred. Please try again.');
+      console.error('LoginScreen: Error:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.detail || error.message || 'Login failed. Please try again.';
+      setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -85,12 +65,11 @@ const LoginScreen = ({ navigation }) => {
               Login
             </Text>
             <TextInput
-              style={[globalStyles.input, { color: globalStyles.COLORS.text, alignSelf: 'center' }]}
-              placeholder="Email Address"
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+              placeholder="Email or Username"
               placeholderTextColor={globalStyles.COLORS.placeholder}
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
+              value={loginId}
+              onChangeText={setLoginId}
               autoCapitalize="none"
               editable={!isLoading}
             />

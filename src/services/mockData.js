@@ -122,6 +122,12 @@ export const mockUsers = [
 
 export const mockRecipients = [
   {
+    recipientId: 1,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
     recipientId: 2,
     name: 'Johnny Baistow',
     email: 'johnny.b@example.com',
@@ -129,18 +135,30 @@ export const mockRecipients = [
   },
   {
     recipientId: 3,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
+    recipientId: 4,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
+    recipientId: 5,
     name: 'Charles Smith',
     email: 'charles.s@example.com',
     image: require('../Assets/images/recipients/recipients2.jpg'),
   },
   {
-    recipientId: 4,
+    recipientId: 6,
     name: 'John Brown',
     email: 'john.brown@example.com',
     image: require('../Assets/images/recipients/recipients3.jpg'),
   },
   {
-    recipientId: 5,
+    recipientId: 7,
     name: 'Mellony Jane',
     email: 'mellony.j@example.com',
     image: require('../Assets/images/recipients/recipients4.jpg'),

@@ -1,0 +1,4124 @@
+c:/AutFinanceBank/src/context/AuthContext.js
+<DOCUMENT>
+import React, { createContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
+
+export const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const login = async (loginId, password) => {
+    try {
+      const response = await api.post('/api/v1/users/login', { login_id: loginId, Password: password });
+      console.log('AuthContext: Login response:', response.data);
+      const { success, message, data } = response.data;
+      if (!success) {
+        return { success: false, message };
+      }
+
+      const { access_token, refresh_token, ...userData } = data;
+      console.log('AuthContext: User data:', userData);
+
+      // Save user data and tokens
+      await AsyncStorage.setItem('accessToken', access_token);
+      await AsyncStorage.setItem('refreshToken', refresh_token);
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+      // Set user state
+      const userWithToken = { ...userData, access_token };
+      setUser(userWithToken);
+
+      return { success: true };
+    } catch (error) {
+      console.error('AuthContext: Login error:', error.response?.data || error.message);
+      return { success: false, message: error.response?.data?.detail || 'Login failed' };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('refreshToken');
+      await AsyncStorage.removeItem('userData');
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      console.error('AuthContext: Logout error:', error);
+      return { success: false, message: 'Logout failed' };
+    }
+  };
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+        console.log('AuthContext: AsyncStorage contents:', { userData, accessToken });
+
+        if (userData && accessToken) {
+          const parsedUser = JSON.parse(userData);
+          parsedUser.access_token = accessToken;
+          console.log('AuthContext: Parsed user data:', Object.keys(parsedUser));
+          setUser(parsedUser);
+        }
+      } catch (error) {
+        console.error('AuthContext: Initialization error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+</DOCUMENT>
+
+c:/AutFinanceBank/src/navigation/AppNavigator.js
+<DOCUMENT>
+import React, { useContext } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { AuthContext } from '../context/AuthContext';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignupStep1 from '../screens/SignupStep/SignupStep1';
+import SignupStep2 from '../screens/SignupStep/SignupStep2';
+import SignupStep3 from '../screens/SignupStep/SignupStep3';
+import SignupStep4 from '../screens/SignupStep/SignupStep4';
+import SignupStep5 from '../screens/SignupStep/SignupStep5';
+import SignupStep6 from '../screens/SignupStep/SignupStep6';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import HomeScreen from '../screens/HomeScreen';
+import SendScreen from '../screens/SendScreen';
+import DepositScreen from '../screens/DepositScreen';
+import LoanScreen from '../screens/LoanScreen';
+import TransactionsScreen from '../screens/TransactionsScreen';
+import WithdrawScreen from '../screens/WithdrawScreen';
+import CardsScreen from '../screens/CardsScreen';
+import QRCodeScreen from '../screens/QRCodeScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import HistoryScreen from '../screens/HistoryScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ScanQRScreen from '../screens/ScanQRScreen';
+import RecipientScreen from '../screens/RecipientScreen';
+import SplashScreen from '../screens/SplashScreen';
+import { View, Text } from 'react-native';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const AppTabs = () => {
+  const context = useContext(AuthContext);
+  const user = context?.user;
+
+  console.log('AppTabs: Rendering, user:', user ? Object.keys(user) : 'undefined', 'context:', !!context);
+
+  if (!user) {
+    console.log('AppTabs: No user, skipping render');
+    return null; // Prevent rendering tabs if not authenticated
+  }
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: { height: 60, paddingBottom: 5 },
+        tabBarLabelStyle: { fontSize: 12 },
+        tabBarActiveTintColor: '#3498db',
+        tabBarInactiveTintColor: '#7f8c8d',
+        headerShown: false,
+      }}
+      initialRouteName="HomeTab"
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color }) => <Icon name="home" size={24} color={color} />,
+        }}
+        listeners={{
+          focus: () => console.log('AppTabs: HomeTab focused, user:', user ? Object.keys(user) : 'undefined'),
+        }}
+      />
+      <Tab.Screen
+        name="HistoryTab"
+        component={HistoryScreen}
+        options={{
+          tabBarLabel: 'History',
+          tabBarIcon: ({ color }) => <Icon name="history" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="ScanQR"
+        component={ScanQRScreen}
+        options={{
+          tabBarIcon: ({ color }) => <Icon name="qr-code" size={32} color={color} />,
+          tabBarLabel: '',
+        }}
+      />
+      <Tab.Screen
+        name="SettingsTab"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: 'Settings',
+          tabBarIcon: ({ color }) => <Icon name="settings" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileScreen}
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color }) => <Icon name="person" size={24} color={color} />,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
+
+const AppNavigator = () => {
+  const context = useContext(AuthContext);
+  const user = context?.user;
+  const isLoading = context?.isLoading;
+
+  console.log('AppNavigator: Rendering, isLoading:', isLoading, 'user:', user ? Object.keys(user) : 'undefined', 'context:', !!context);
+
+  if (!context) {
+    console.error('AppNavigator: AuthContext is undefined');
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Error"
+            component={() => (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Authentication error. Please restart the app.</Text>
+              </View>
+            )}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
+  if (isLoading) {
+    console.log('AppNavigator: Showing splash screen due to isLoading');
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Splash"
+            component={SplashScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={user ? 'Home' : 'Welcome'}
+        screenOptions={{ headerShown: false }}
+      >
+        {!user ? (
+          <>
+            <Stack.Screen
+              name="Welcome"
+              component={SplashScreen}
+              listeners={{
+                focus: () => console.log('Navigation: Focused on Welcome'),
+              }}
+            />
+            <Stack.Screen
+              name="Onboarding"
+              component={OnboardingScreen}
+              listeners={{
+                focus: () => console.log('Navigation: Focused on Onboarding'),
+              }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              listeners={{
+                focus: () => console.log('Navigation: Focused on Login'),
+              }}
+            />
+            <Stack.Screen name="SignupStep1" component={SignupStep1} />
+            <Stack.Screen name="SignupStep2" component={SignupStep2} />
+            <Stack.Screen name="SignupStep3" component={SignupStep3} />
+            <Stack.Screen name="SignupStep4" component={SignupStep4} />
+            <Stack.Screen name="SignupStep5" component={SignupStep5} />
+            <Stack.Screen name="SignupStep6" component={SignupStep6} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="Home"
+              component={AppTabs}
+              listeners={{
+                focus: () =>
+                  console.log('Navigation: Focused on Home (AppTabs), user:', user ? Object.keys(user) : 'undefined'),
+              }}
+            />
+            <Stack.Screen name="Send" component={SendScreen} />
+            <Stack.Screen name="Deposit" component={DepositScreen} />
+            <Stack.Screen name="Loan" component={LoanScreen} />
+            <Stack.Screen name="Transactions" component={TransactionsScreen} />
+            <Stack.Screen name="Withdraw" component={WithdrawScreen} />
+            <Stack.Screen name="Cards" component={CardsScreen} />
+            <Stack.Screen name="QRCode" component={QRCodeScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="RecipientScreen" component={RecipientScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/CardsScreen.js
+<DOCUMENT>
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Modal } from 'react-native';
+import { useQuery, useMutation } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { getCards, createCard, updateCard, deleteCard } from '../services/cardService';
+import { CardCreateSchema, CardUpdateSchema } from '../utils/validators';
+import { formatDate } from '../utils/helpers';
+import globalStyles from '../styles/globalStyles';
+
+const CardsScreen = () => {
+  const { user } = useContext(AuthContext);
+  const [showModal, setShowModal] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [pin, setPin] = useState('');
+  const [expirationDate, setExpirationDate] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const { data: cards, isLoading, refetch } = useQuery('cards', () => getCards({ page: 1, per_page: 10 }), {
+    enabled: !!user,
+  });
+
+  const createMutation = useMutation(createCard, {
+    onSuccess: () => {
+      setShowModal(false);
+      setCardNumber('');
+      setPin('');
+      setExpirationDate('');
+      refetch();
+    },
+    onError: (error) => setErrorMessage(error.message),
+  });
+
+  const updateMutation = useMutation(({ cardId, cardData }) => updateCard(cardId, cardData), {
+    onSuccess: refetch,
+    onError: (error) => setErrorMessage(error.message),
+  });
+
+  const deleteMutation = useMutation(deleteCard, {
+    onSuccess: refetch,
+    onError: (error) => setErrorMessage(error.message),
+  });
+
+  const handleCreateCard = async () => {
+    setErrorMessage('');
+    try {
+      const cardData = { CardNumber: cardNumber, Pin: pin, ExpirationDate: formatDate(expirationDate) };
+      await CardCreateSchema.validate(cardData);
+      createMutation.mutate(cardData);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const handleUpdateStatus = async (cardId, status) => {
+    try {
+      await CardUpdateSchema.validate({ Status: status });
+      updateMutation.mutate({ cardId, cardData: { Status: status } });
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const renderCard = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.cardText}>Card Number: {item.CardNumber}</Text>
+      <Text style={styles.cardText}>Expiration: {item.ExpirationDate}</Text>
+      <Text style={styles.cardText}>Status: {item.Status}</Text>
+      <View style={styles.cardActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, item.Status === 'Active' && { opacity: 0.5 }]}
+          onPress={() => handleUpdateStatus(item.CardID, 'Active')}
+          disabled={item.Status === 'Active'}
+        >
+          <Text style={styles.actionText}>Activate</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, item.Status === 'Blocked' && { opacity: 0.5 }]}
+          onPress={() => handleUpdateStatus(item.CardID, 'Blocked')}
+          disabled={item.Status === 'Blocked'}
+        >
+          <Text style={styles.actionText}>Block</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => deleteMutation.mutate(item.CardID)}
+        >
+          <Text style={styles.actionText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  if (!user) {
+    return (
+      <View style={globalStyles.container}>
+        <Text>Please log in to view cards</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={globalStyles.container}>
+      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+        Your Cards
+      </Text>
+      {isLoading ? (
+        <Text>Loading cards...</Text>
+      ) : (
+        <FlatList
+          data={cards?.data || []}
+          renderItem={renderCard}
+          keyExtractor={(item) => item.CardID.toString()}
+        />
+      )}
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={() => setShowModal(true)}
+      >
+        <Text style={globalStyles.buttonText}>Add New Card</Text>
+      </TouchableOpacity>
+      {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+
+      <Modal visible={showModal} animationType="slide">
+        <View style={globalStyles.container}>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+            Add New Card
+          </Text>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Card Number (16 digits)"
+            keyboardType="numeric"
+            value={cardNumber}
+            onChangeText={setCardNumber}
+            maxLength={16}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="PIN (4 digits)"
+            keyboardType="numeric"
+            secureTextEntry
+            value={pin}
+            onChangeText={setPin}
+            maxLength={4}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Expiration Date (YYYY-MM-DD)"
+            value={expirationDate}
+            onChangeText={setExpirationDate}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, createMutation.isLoading && { opacity: 0.7 }]}
+            onPress={handleCreateCard}
+            disabled={createMutation.isLoading}
+          >
+            <Text style={globalStyles.buttonText}>
+              {createMutation.isLoading ? 'Adding...' : 'Add Card'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={globalStyles.buttonOutline}
+            onPress={() => setShowModal(false)}
+          >
+            <Text style={globalStyles.buttonOutlineText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 8,
+  },
+  cardText: {
+    fontSize: globalStyles.FONT_SIZES.medium,
+    color: globalStyles.COLORS.text,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  actionButton: {
+    backgroundColor: globalStyles.COLORS.primary,
+    padding: 8,
+    borderRadius: 5,
+  },
+  actionText: {
+    color: globalStyles.COLORS.white,
+    fontSize: globalStyles.FONT_SIZES.small,
+  },
+});
+
+export default CardsScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/DepositScreen.js
+<DOCUMENT>
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const DepositScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Deposit Screen</Text>
+  </View>
+);
+
+export default DepositScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/ForgotPasswordScreen.js
+<DOCUMENT>
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import { sendOtpForPasswordReset, verifyOtpAndResetPassword } from '../services/api';
+import globalStyles from '../styles/globalStyles';
+
+const ForgotPasswordScreen = ({ navigation }) => {
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendOtp = async () => {
+    setErrorMessage('');
+    if (!email) {
+      setErrorMessage('Email is required');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await sendOtpForPasswordReset(email);
+      if (result.success) {
+        setStep(2);
+      } else {
+        setErrorMessage(result.message);
+      }
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred: ' + error.message);
+      console.error('ForgotPasswordScreen sendOtp error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setErrorMessage('');
+    if (!otp || otp.length !== 6) {
+      setErrorMessage('Please enter a valid 6-digit OTP');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setErrorMessage('New password must be at least 6 characters long');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await verifyOtpAndResetPassword(email, otp, newPassword);
+      if (result.success) {
+        setErrorMessage('');
+        alert('Password reset successfully! Please log in with your new password.');
+        navigation.replace('Login');
+      } else {
+        setErrorMessage(result.message);
+      }
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred: ' + error.message);
+      console.error('ForgotPasswordScreen resetPassword error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+          <View>
+            <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+              <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+              <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+            </View>
+
+            <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+              Forgot Password
+            </Text>
+
+            {step === 1 ? (
+              <>
+                <TextInput
+                  style={[globalStyles.input, { color: globalStyles.COLORS.text, alignSelf: 'center' }]}
+                  placeholder="Email Address"
+                  placeholderTextColor={globalStyles.COLORS.placeholder}
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  editable={!isLoading}
+                />
+
+                {errorMessage ? <Text style={[globalStyles.textError, { alignSelf: 'center' }]}>{errorMessage}</Text> : null}
+
+                <TouchableOpacity
+                  style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+                  onPress={handleSendOtp}
+                  disabled={isLoading}
+                >
+                  <Text style={globalStyles.buttonText}>{isLoading ? 'Sending OTP...' : 'Send OTP'}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TextInput
+                  style={[globalStyles.input, { color: globalStyles.COLORS.text, alignSelf: 'center' }]}
+                  placeholder="Enter OTP"
+                  placeholderTextColor={globalStyles.COLORS.placeholder}
+                  keyboardType="numeric"
+                  value={otp}
+                  onChangeText={setOtp}
+                  maxLength={6}
+                  editable={!isLoading}
+                />
+
+                <View style={{ position: 'relative', width: '100%', alignSelf: 'center' }}>
+                  <TextInput
+                    style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+                    placeholder="New Password"
+                    placeholderTextColor={globalStyles.COLORS.placeholder}
+                    secureTextEntry={!showNewPassword}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    <Text>{showNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={{ position: 'relative', width: '100%', alignSelf: 'center' }}>
+                  <TextInput
+                    style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+                    placeholder="Confirm New Password"
+                    placeholderTextColor={globalStyles.COLORS.placeholder}
+                    secureTextEntry={!showConfirmNewPassword}
+                    value={confirmNewPassword}
+                    onChangeText={setConfirmNewPassword}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                  >
+                    <Text>{showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {errorMessage ? <Text style={[globalStyles.textError, { alignSelf: 'center' }]}>{errorMessage}</Text> : null}
+
+                <TouchableOpacity
+                  style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+                  onPress={handleResetPassword}
+                  disabled={isLoading}
+                >
+                  <Text style={globalStyles.buttonText}>{isLoading ? 'Resetting...' : 'Reset Password'}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={[globalStyles.text, styles.backToLoginLink]}>Back to Login</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerText}>Your Trusted Banking Partner</Text>
+            <View style={styles.footerLine} />
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  backToLoginLink: {
+    color: globalStyles.COLORS.primary,
+    textAlign: 'center',
+    marginVertical: globalStyles.SPACING.small,
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+  },
+  footer: {
+    alignItems: 'center',
+    marginBottom: globalStyles.SPACING.large,
+  },
+  footerLine: {
+    width: '80%',
+    height: 2,
+    backgroundColor: globalStyles.COLORS.primary,
+    marginVertical: globalStyles.SPACING.small,
+  },
+  footerText: {
+    fontSize: 16,
+    color: globalStyles.COLORS.text,
+    fontStyle: 'italic',
+  },
+});
+
+export default ForgotPasswordScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/HistoryScreen.js
+<DOCUMENT>
+// screens/BillsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const BillsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>history Screen</Text>
+  </View>
+);
+
+export default BillsScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/HomeScreen.js
+<DOCUMENT>
+import React, { useContext, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useQuery } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import api from '../services/api';
+
+const { height } = Dimensions.get('window');
+
+const HomeScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { user } = useContext(AuthContext);
+
+  console.log('HomeScreen route.params:', route.params);
+  console.log('HomeScreen user:', user);
+  console.log('HomeScreen user keys:', user ? Object.keys(user) : 'undefined');
+
+  const { data: userData, isLoading: userLoading, error: userError } = useQuery(
+    ['user', user?.UserID],
+    async () => {
+      if (!user?.access_token) {
+        throw new Error('No access token available');
+      }
+      const response = await api.get('/api/v1/users/me');
+      console.log('HomeScreen: /me response:', response.data);
+      return response.data;
+    },
+    {
+      enabled: !!user?.access_token,
+      retry: false,
+    }
+  );
+
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery(
+    ['transactions', user?.UserID],
+    async () => {
+      if (!user?.access_token) {
+        throw new Error('No access token available');
+      }
+      const response = await api.get('/api/v1/users/transactions');
+      console.log('HomeScreen: /transactions response:', response.data);
+      return response.data.map((t) => ({
+        id: `${t.type}-${t.id}`,
+        type: t.type,
+        description: t.type === 'credit' ? `From ${t.senderName}` : `To ${t.recipientName}`,
+        amount: t.amount,
+        date: t.date,
+      }));
+    },
+    {
+      enabled: !!user?.access_token,
+      retry: false,
+    }
+  );
+
+  useEffect(() => {
+    console.log('HomeScreen navigation focus, user:', user ? Object.keys(user) : 'undefined');
+    if (!user) {
+      console.warn('HomeScreen no user in AuthContext');
+    }
+  }, [user]);
+
+  const BalanceCard = () => (
+    <View style={styles.balanceCard}>
+      <Text style={styles.balanceTitle}>Balance</Text>
+      <View style={styles.balanceRow}>
+        <Text style={styles.balanceAmount}>
+          {userLoading ? '...' : `$${(userData?.balance || 0).toFixed(2)}`}
+        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('QRCode')}>
+          <Icon name="qr-code" size={24} color="#3498db" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const ServiceItem = ({ title, icon, screen }) => (
+    <TouchableOpacity style={styles.serviceItem} onPress={() => navigation.navigate(screen)}>
+      <Icon name={icon} size={24} color="#3498db" />
+      <Text style={styles.serviceText}>{title}</Text>
+    </TouchableOpacity>
+  );
+
+  const TransactionItem = ({ item }) => (
+    <View style={styles.transaction}>
+      <Text style={[styles.transactionIcon, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
+        {item.type === 'credit' ? '↓' : '↑'}
+      </Text>
+      <View style={styles.transactionDetails}>
+        <Text style={styles.transactionDescription}>{item.description}</Text>
+        <Text style={styles.transactionDate}>{item.date}</Text>
+      </View>
+      <Text style={[styles.transactionAmount, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
+        {item.type === 'credit' ? '+' : '-'}${item.amount.toFixed(2)}
+      </Text>
+    </View>
+  );
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.blueSection}>
+          <Text style={styles.username}>Please log in to continue</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })}
+          >
+            <Text style={styles.retryButtonText}>Go to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (userLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#3498db" style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  if (userError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.blueSection}>
+          <Text style={styles.username}>Error loading user data</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })}
+          >
+            <Text style={styles.retryButtonText}>Retry Login</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.blueSection}>
+        <View style={styles.header}>
+          <View style={styles.userContainer}>
+            <View style={styles.userAvatar}>
+              {userData?.profileImage ? (
+                <Image
+                  source={{ uri: userData.profileImage }}
+                  style={styles.userAvatarImage}
+                  resizeMode="cover"
+                  onError={(e) => console.log('HomeScreen image error:', e.nativeEvent.error)}
+                />
+              ) : (
+                <Image
+                  source={require('../Assets/images/users/user2.jpg')}
+                  style={styles.userAvatarImage}
+                  resizeMode="cover"
+                />
+              )}
+            </View>
+            <View style={styles.userTextContainer}>
+              <Text style={styles.username}>{userData?.Username || 'User'}</Text>
+              <Text style={styles.greeting}>Let's save your money</Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+            <Icon name="notifications" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <BalanceCard />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.whiteSection}>
+        <View style={styles.userDataContainer}>
+          <Text style={styles.sectionTitle}>User Details</Text>
+          <Text style={styles.userDataText}>Username: {userData?.Username || 'N/A'}</Text>
+          <Text style={styles.userDataText}>Email: {userData?.Email || 'N/A'}</Text>
+          <Text style={styles.userDataText}>User ID: {userData?.UserID || 'N/A'}</Text>
+          <Text style={styles.userDataText}>Account Type: {userData?.AccountType || 'N/A'}</Text>
+        </View>
+
+        <View style={styles.servicesContainer}>
+          <Text style={styles.sectionTitle}>Services</Text>
+          <View style={styles.servicesRow}>
+            <ServiceItem title="Send" icon="send" screen="Send" />
+            <ServiceItem title="Deposit" icon="add" screen="Deposit" />
+            <ServiceItem title="Loan" icon="account-balance" screen="Loan" />
+          </View>
+          <View style={styles.servicesRow}>
+            <ServiceItem title="Withdraw" icon="atm" screen="Withdraw" />
+            <ServiceItem title="Cards" icon="credit-card" screen="Cards" />
+            <ServiceItem title="Transactions" icon="history" screen="Transactions" />
+          </View>
+        </View>
+
+        <View style={styles.recipientsContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recipients</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('RecipientScreen')}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={[]}
+            horizontal
+            renderItem={() => null}
+            keyExtractor={() => ''}
+          />
+        </View>
+
+        <View style={styles.transactionsContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Transaction History</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          {transactionsLoading ? (
+            <Text style={styles.transactionDescription}>Loading transactions...</Text>
+          ) : (
+            <FlatList
+              data={transactionsData || []}
+              renderItem={TransactionItem}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+            />
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  blueSection: {
+    height: height * 0.2,
+    backgroundColor: '#3498db',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    padding: 16,
+    zIndex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    overflow: 'hidden',
+  },
+  userAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  userTextContainer: { flexDirection: 'column' },
+  username: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
+  greeting: { fontSize: 14, color: '#fff', marginTop: 4 },
+  balanceCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 4,
+    position: 'absolute',
+    top: height * 0.12,
+    left: 16,
+    right: 16,
+    zIndex: 2,
+  },
+  balanceTitle: { fontSize: 14, color: '#7f8c8d' },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  balanceAmount: { fontSize: 26, fontWeight: 'bold', color: '#2c3e50', marginVertical: 4 },
+  whiteSection: {
+    backgroundColor: '#fff',
+    paddingTop: height * 0.08,
+  },
+  userDataContainer: { paddingHorizontal: 16, marginBottom: 16 },
+  userDataText: { fontSize: 14, color: '#2c3e50', marginVertical: 4 },
+  servicesContainer: { paddingHorizontal: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  servicesRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  serviceItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#ecf0f1',
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  serviceText: { fontSize: 12, color: '#2c3e50', marginTop: 4 },
+  recipientsContainer: { padding: 16 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#3498db',
+    fontWeight: '500',
+  },
+  retryButton: {
+    backgroundColor: '#3498db',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  transactionsContainer: { padding: 16 },
+  transaction: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+  transactionIcon: { fontSize: 20, marginRight: 8 },
+  transactionDetails: { flex: 1 },
+  transactionDescription: { fontSize: 14, color: '#2c3e50' },
+  transactionDate: { fontSize: 10, color: '#7f8c8d' },
+  transactionAmount: { fontSize: 14, fontWeight: 'bold' },
+});
+
+export default HomeScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/LoanScreen.js
+<DOCUMENT>
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Modal } from 'react-native';
+import { useQuery, useMutation } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { applyForLoan, getLoanTypes, getLoans, makeLoanPayment } from '../services/loanService';
+import { LoanApplySchema, LoanPaymentCreateSchema } from '../utils/validators';
+import { formatCurrency, formatDate } from '../utils/helpers';
+import globalStyles from '../styles/globalStyles';
+
+const LoanScreen = () => {
+  const { user } = useContext(AuthContext);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [loanTypeId, setLoanTypeId] = useState('');
+  const [loanAmount, setLoanAmount] = useState('');
+  const [loanDuration, setLoanDuration] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [paymentLoanId, setPaymentLoanId] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const { data: loanTypes, isLoading: typesLoading } = useQuery('loanTypes', getLoanTypes, {
+    enabled: !!user,
+  });
+
+  const { data: loans, isLoading: loansLoading, refetch } = useQuery('loans', () => getLoans({ page: 1, per_page: 10 }), {
+    enabled: !!user,
+  });
+
+  const applyMutation = useMutation(applyForLoan, {
+    onSuccess: () => {
+      setShowApplyModal(false);
+      setLoanTypeId('');
+      setLoanAmount('');
+      setLoanDuration('');
+      setDueDate('');
+      refetch();
+    },
+    onError: (error) => setErrorMessage(error.message),
+  });
+
+  const paymentMutation = useMutation(makeLoanPayment, {
+    onSuccess: () => {
+      setShowPaymentModal(false);
+      setPaymentLoanId(null);
+      setPaymentAmount('');
+      refetch();
+    },
+    onError: (error) => setErrorMessage(error.message),
+  });
+
+  const handleApplyLoan = async () => {
+    setErrorMessage('');
+    try {
+      const loanData = {
+        LoanTypeID: parseInt(loanTypeId),
+        LoanAmount: parseFloat(loanAmount),
+        LoanDurationMonths: parseInt(loanDuration),
+        DueDate: formatDate(dueDate),
+      };
+      await LoanApplySchema.validate(loanData);
+      applyMutation.mutate(loanData);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const handleMakePayment = async () => {
+    setErrorMessage('');
+    try {
+      const paymentData = {
+        LoanID: paymentLoanId,
+        PaymentAmount: parseFloat(paymentAmount),
+      };
+      await LoanPaymentCreateSchema.validate(paymentData);
+      paymentMutation.mutate(paymentData);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const renderLoan = ({ item }) => (
+    <View style={styles.loan}>
+      <Text style={styles.loanText}>Type: {item.LoanTypeName}</Text>
+      <Text style={styles.loanText}>Amount: {formatCurrency(item.LoanAmount)}</Text>
+      <Text style={styles.loanText}>Status: {item.LoanStatus}</Text>
+      <Text style={styles.loanText}>Due: {item.DueDate}</Text>
+      <TouchableOpacity
+        style={styles.actionButton}
+        onPress={() => {
+          setPaymentLoanId(item.LoanID);
+          setShowPaymentModal(true);
+        }}
+      >
+        <Text style={styles.actionText}>Make Payment</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (!user) {
+    return (
+      <View style={globalStyles.container}>
+        <Text>Please log in to manage loans</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={globalStyles.container}>
+      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+        Loans
+      </Text>
+      {loansLoading ? (
+        <Text>Loading loans...</Text>
+      ) : (
+        <FlatList
+          data={loans?.data || []}
+          renderItem={renderLoan}
+          keyExtractor={(item) => item.LoanID.toString()}
+        />
+      )}
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={() => setShowApplyModal(true)}
+      >
+        <Text style={globalStyles.buttonText}>Apply for Loan</Text>
+      </TouchableOpacity>
+      {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+
+      <Modal visible={showApplyModal} animationType="slide">
+        <View style={globalStyles.container}>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+            Apply for Loan
+          </Text>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Loan Type ID"
+            keyboardType="numeric"
+            value={loanTypeId}
+            onChangeText={setLoanTypeId}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Loan Amount"
+            keyboardType="numeric"
+            value={loanAmount}
+            onChangeText={setLoanAmount}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Duration (Months)"
+            keyboardType="numeric"
+            value={loanDuration}
+            onChangeText={setLoanDuration}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Due Date (YYYY-MM-DD)"
+            value={dueDate}
+            onChangeText={setDueDate}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, applyMutation.isLoading && { opacity: 0.7 }]}
+            onPress={handleApplyLoan}
+            disabled={applyMutation.isLoading}
+          >
+            <Text style={globalStyles.buttonText}>
+              {applyMutation.isLoading ? 'Applying...' : 'Apply'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={globalStyles.buttonOutline}
+            onPress={() => setShowApplyModal(false)}
+          >
+            <Text style={globalStyles.buttonOutlineText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      <Modal visible={showPaymentModal} animationType="slide">
+        <View style={globalStyles.container}>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+            Make Loan Payment
+          </Text>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Payment Amount"
+            keyboardType="numeric"
+            value={paymentAmount}
+            onChangeText={setPaymentAmount}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, paymentMutation.isLoading && { opacity: 0.7 }]}
+            onPress={handleMakePayment}
+            disabled={paymentMutation.isLoading}
+          >
+            <Text style={globalStyles.buttonText}>
+              {paymentMutation.isLoading ? 'Processing...' : 'Pay'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={globalStyles.buttonOutline}
+            onPress={() => setShowPaymentModal(false)}
+          >
+            <Text style={globalStyles.buttonOutlineText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  loan: {
+    backgroundColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 8,
+  },
+  loanText: {
+    fontSize: globalStyles.FONT_SIZES.medium,
+    color: globalStyles.COLORS.text,
+  },
+  actionButton: {
+    backgroundColor: globalStyles.COLORS.primary,
+    padding: 8,
+    borderRadius: 5,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  actionText: {
+    color: globalStyles.COLORS.white,
+    fontSize: globalStyles.FONT_SIZES.small,
+  },
+});
+
+export default LoanScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/LoginScreen.js
+<DOCUMENT>
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { AuthContext } from '../context/AuthContext';
+import { UserLoginSchema } from '../utils/validators';
+import globalStyles from '../styles/globalStyles';
+import initializeWebSocket from '../services/socket';
+
+const LoginScreen = ({ navigation }) => {
+  const { login } = useContext(AuthContext);
+  const [loginId, setLoginId] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      // Validate input
+      await UserLoginSchema.validate({ login_id: loginId, Password: password });
+      console.log('LoginScreen: Sending login request:', { login_id: loginId, Password: password });
+
+      // Call login from AuthContext
+      const result = await login(loginId, password);
+      if (result.success) {
+        console.log('LoginScreen: Login successful');
+        // Initialize WebSocket
+        const ws = await initializeWebSocket();
+        if (ws) {
+          console.log('LoginScreen: WebSocket initialized');
+        } else {
+          console.warn('LoginScreen: Failed to initialize WebSocket');
+        }
+        // Navigate to Home
+        navigation.replace('Home');
+      } else {
+        console.log('LoginScreen: Login failed:', result.message);
+        setErrorMessage(result.message);
+      }
+    } catch (error) {
+      console.error('LoginScreen: Error:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.detail || error.message || 'Login failed. Please try again.';
+      setErrorMessage(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+          <View>
+            <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+              <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+              <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+            </View>
+            <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+              Login
+            </Text>
+            <TextInput
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+              placeholder="Email or Username"
+              placeholderTextColor={globalStyles.COLORS.placeholder}
+              value={loginId}
+              onChangeText={setLoginId}
+              autoCapitalize="none"
+              editable={!isLoading}
+            />
+            <View style={{ position: 'relative', width: '100%', alignSelf: 'center' }}>
+              <TextInput
+                style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+                placeholder="Password"
+                placeholderTextColor={globalStyles.COLORS.placeholder}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                editable={!isLoading}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={20} color={globalStyles.COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            {errorMessage ? <Text style={[globalStyles.textError, { alignSelf: 'center' }]}>{errorMessage}</Text> : null}
+            <TouchableOpacity
+              style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <Text style={globalStyles.buttonText}>{isLoading ? 'Logging in...' : 'Login'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={[globalStyles.text, styles.forgotPasswordLink]}>Forgot Password?</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('SignupStep1')}>
+              <Text style={[globalStyles.text, styles.signUpLink]}>Don't have an account? Create one</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.footer}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerText}>Your Trusted Banking Partner</Text>
+            <View style={styles.footerLine} />
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -12 }],
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 5,
+  },
+  forgotPasswordLink: {
+    color: globalStyles.COLORS.primary,
+    textAlign: 'center',
+    marginVertical: globalStyles.SPACING.small,
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+  },
+  signUpLink: {
+    color: globalStyles.COLORS.secondary,
+    textAlign: 'center',
+    marginVertical: globalStyles.SPACING.small,
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+  },
+  footer: {
+    alignItems: 'center',
+    marginBottom: globalStyles.SPACING.large,
+  },
+  footerLine: {
+    width: '80%',
+    height: 2,
+    backgroundColor: globalStyles.COLORS.primary,
+    marginVertical: globalStyles.SPACING.small,
+  },
+  footerText: {
+    fontSize: 16,
+    color: globalStyles.COLORS.text,
+    fontStyle: 'italic',
+  },
+});
+
+export default LoginScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/NotificationsScreen.js
+<DOCUMENT>
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const NotificationsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Notifications Screen</Text>
+  </View>
+);
+
+export default NotificationsScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/OnboardingScreen.js
+<DOCUMENT>
+import React, { useRef, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Dimensions, SafeAreaView } from 'react-native';
+import globalStyles from '../styles/globalStyles'; // Adjust the path as needed
+import { useNavigation } from '@react-navigation/native';
+
+const { width } = Dimensions.get('screen');
+
+const onboardingData = [
+  {
+    id: '1',
+    logo: true, // Use the two-circle logo
+    title1: 'Welcome to',
+    title2: 'Aut Bank.',
+    subtitle: 'Your Best Money Transfer Partner.',
+    showGetStarted: true,
+  },
+  {
+    id: '2',
+    logo: true, // Use the two-circle logo (same as first screen)
+    title1: 'Easy, Fast & Trusted',
+    subtitle: 'Fast money transfer and guaranteed safe with others.',
+    showGetStarted: false,
+    logoText: 'Fast', // Bold text below the logo
+  },
+  {
+    id: '3',
+    logo: true, // Use the two-circle logo (same as first screen)
+    title1: 'Free Transactions',
+    subtitle: 'Provides the quality of the financial system with free money transactions without any fees.',
+    showGetStarted: false,
+    logoText: 'Free', // Bold text below the logo
+  },
+];
+
+const OnboardingScreen = () => {
+  const navigation = useNavigation();
+  const flatListRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleContinue = () => {
+    if (currentIndex < onboardingData.length - 1) {
+      const nextIndex = currentIndex + 1;
+      flatListRef.current.scrollToIndex({ index: nextIndex, animated: true });
+      setCurrentIndex(nextIndex);
+    }
+  };
+
+  const handleLogin = () => {
+    navigation.navigate('Login');
+    
+    // navigation.navigate('Home');
+
+  };
+
+  const handleSignup = () => {
+    navigation.navigate('SignupStep1');
+  };
+
+  const renderItem = ({ item, index }) => (
+    <View style={{ width, flex: 1 }}>
+      {/* Centered content (logo, title, subtitle) */}
+      <View style={[globalStyles.centeredContainer, { flex: 1 }]}>
+        {/* Logo with bold text below */}
+        {item.logo && (
+          <View style={{ alignItems: 'center' }}>
+            <View style={globalStyles.logoContainer}>
+              <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+              <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+            </View>
+            {/* Bold text below the logo for screens 2 and 3 */}
+            {item.logoText && (
+              <Text
+                style={{
+                  fontSize: globalStyles.FONT_SIZES.xlarge,
+                  fontWeight: 'bold',
+                  color: globalStyles.COLORS.primary,
+                  marginBottom: globalStyles.SPACING.medium,
+                }}
+              >
+                {item.logoText}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Title */}
+        <Text style={globalStyles.textXLargeBlack}>{item.title1}</Text>
+        {item.title2 && <Text style={globalStyles.textXLarge}>{item.title2}</Text>}
+
+        {/* Subtitle */}
+        <Text
+          style={[
+            item.id === '1' ? globalStyles.textSmall : globalStyles.textSmallGray,
+            { marginTop: globalStyles.SPACING.medium },
+          ]}
+        >
+          {item.subtitle}
+        </Text>
+      </View>
+
+      {/* Bottom container for buttons and dots */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: globalStyles.SPACING.xlarge,
+          width: '100%',
+          alignItems: 'center',
+        }}
+      >
+        {/* Buttons */}
+        {index === onboardingData.length - 1 ? (
+          // Show Login and Signup buttons on the last screen
+          <View>
+            <TouchableOpacity style={globalStyles.button} onPress={handleLogin}>
+              <Text style={globalStyles.buttonText}>Login</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={globalStyles.buttonOutline} onPress={handleSignup}>
+              <Text style={globalStyles.buttonOutlineText}>Signup</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // Show Get Started or Continue button
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={item.showGetStarted ? handleContinue : handleContinue}
+          >
+            <Text style={globalStyles.buttonText}>
+              {item.showGetStarted ? 'Get Started' : 'Continue'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Dots */}
+        <View style={globalStyles.dotContainer}>
+          {onboardingData.map((_, dotIndex) => (
+            <View
+              key={dotIndex}
+              style={[
+                globalStyles.dot,
+                dotIndex === 0 && currentIndex === 0
+                  ? globalStyles.dotFirst
+                  : dotIndex === currentIndex
+                  ? globalStyles.dotActive
+                  : globalStyles.dotInactive,
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={globalStyles.container}>
+      <FlatList
+        ref={flatListRef}
+        data={onboardingData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        snapToInterval={width}
+        snapToAlignment="center"
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ height: '100%' }}
+        onMomentumScrollEnd={(event) => {
+          const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentIndex(newIndex);
+        }}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default OnboardingScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/ProfileScreen.js
+<DOCUMENT>
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const ProfileScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Profile Screen</Text>
+  </View>
+);
+
+export default ProfileScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/QRCodeScreen.js
+<DOCUMENT>
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const QRCodeScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>QR Code Screen</Text>
+  </View>
+);
+
+export default QRCodeScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/RecipientScreen.js
+<DOCUMENT>
+// screens/TransactionsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const  RecipientScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text> Recipient Screen</Text>
+  </View>
+);
+
+export default RecipientScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/ScanQRScreen.js
+<DOCUMENT>
+// screens/ScanQRScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const ScanQRScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Scan QR Screen</Text>
+  </View>
+);
+
+export default ScanQRScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SendScreen.js
+<DOCUMENT>
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { useMutation } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { createTransfer } from '../services/transferService';
+import { TransferCreateSchema } from '../utils/validators';
+import globalStyles from '../styles/globalStyles';
+
+const SendScreen = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
+  const [recipient, setRecipient] = useState('');
+  const [recipientType, setRecipientType] = useState('email');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const mutation = useMutation(createTransfer, {
+    onSuccess: (data) => {
+      if (data.success) {
+        alert('Transfer initiated successfully!');
+        navigation.goBack();
+      } else {
+        setErrorMessage(data.message);
+      }
+    },
+    onError: (error) => {
+      setErrorMessage(error.message || 'Failed to initiate transfer');
+    },
+  });
+
+  const handleSend = async () => {
+    setErrorMessage('');
+    try {
+      const transferData = {
+        [recipientType]: recipient,
+        Amount: parseFloat(amount),
+        Description: description || undefined,
+      };
+      await TransferCreateSchema.validate(transferData);
+      mutation.mutate(transferData);
+    } catch (error) {
+      setErrorMessage(error.message || 'Invalid input');
+    }
+  };
+
+  if (!user) {
+    return (
+      <View style={globalStyles.container}>
+        <Text>Please log in to send money</Text>
+        <TouchableOpacity
+          style={globalStyles.button}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={globalStyles.buttonText}>Go to Login</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <ScrollView contentContainerStyle={globalStyles.container}>
+        <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+          Send Money
+        </Text>
+        <View style={styles.recipientTypeContainer}>
+          {['email', 'username', 'cnic'].map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.recipientTypeButton,
+                recipientType === type && styles.recipientTypeButtonActive,
+              ]}
+              onPress={() => setRecipientType(type)}
+            >
+              <Text style={styles.recipientTypeText}>{type.toUpperCase()}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <TextInput
+          style={globalStyles.input}
+          placeholder={`Recipient ${recipientType.toUpperCase()}`}
+          value={recipient}
+          onChangeText={setRecipient}
+          autoCapitalize={recipientType === 'email' ? 'none' : 'words'}
+        />
+        <TextInput
+          style={globalStyles.input}
+          placeholder="Amount"
+          keyboardType="numeric"
+          value={amount}
+          onChangeText={setAmount}
+        />
+        <TextInput
+          style={globalStyles.input}
+          placeholder="Description (optional)"
+          value={description}
+          onChangeText={setDescription}
+        />
+        {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+        <TouchableOpacity
+          style={[globalStyles.button, mutation.isLoading && { opacity: 0.7 }]}
+          onPress={handleSend}
+          disabled={mutation.isLoading}
+        >
+          <Text style={globalStyles.buttonText}>
+            {mutation.isLoading ? 'Sending...' : 'Send'}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  recipientTypeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: globalStyles.SPACING.medium,
+  },
+  recipientTypeButton: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  recipientTypeButtonActive: {
+    backgroundColor: globalStyles.COLORS.primary,
+    borderColor: globalStyles.COLORS.primary,
+  },
+  recipientTypeText: {
+    color: globalStyles.COLORS.text,
+    fontSize: globalStyles.FONT_SIZES.medium,
+  },
+});
+
+export default SendScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SettingsScreen.js
+<DOCUMENT>
+// screens/SettingsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const SettingsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Settings Screen</Text>
+  </View>
+);
+
+export default SettingsScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupScreen.js
+<DOCUMENT>
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  StyleSheet,
+} from "react-native";
+import globalStyles from "../styles/globalStyles";
+
+const SignupScreen = ({ navigation }) => {
+  const [username, setUsername] = useState("");
+  const [cnic, setCnic] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState("Savings");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const accountTypes = [
+    { label: "Savings", value: "Savings" },
+    { label: "Current", value: "Current" },
+  ];
+
+  const validateInputs = () => {
+    if (!username || !cnic || !email || !password) {
+      setErrorMessage("All fields are required");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address");
+      return false;
+    }
+    if (cnic.length !== 13 || isNaN(cnic)) {
+      setErrorMessage("Please enter a valid 13-digit CNIC number");
+      return false;
+    }
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters long");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignup = async () => {
+    setErrorMessage("");
+    setIsLoading(true);
+    try {
+      if (!validateInputs()) {
+        setIsLoading(false);
+        return;
+      }
+      console.log("Registering user", { username, cnic, email, password, accountType });
+      navigation.replace("Login");
+    } catch (error) {
+      setErrorMessage("Signup failed. Please try again.");
+      console.error("Signup error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderDropdownItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => {
+        setAccountType(item.value);
+        setDropdownVisible(false);
+      }}
+    >
+      <Text style={styles.dropdownItemText}>{item.label}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={globalStyles.container}>
+      <Text style={globalStyles.title}>Register</Text>
+
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        editable={!isLoading}
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="CNIC"
+        keyboardType="numeric"
+        value={cnic}
+        onChangeText={setCnic}
+        maxLength={13}
+        editable={!isLoading}
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Email"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        editable={!isLoading}
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        editable={!isLoading}
+      />
+
+      {/* Custom Dropdown */}
+      <TouchableOpacity
+        style={[globalStyles.input, styles.dropdownButton]}
+        onPress={() => !isLoading && setDropdownVisible(true)}
+        disabled={isLoading}
+      >
+        <Text>{accountType}</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={dropdownVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setDropdownVisible(false)}
+        >
+          <View style={styles.dropdownContainer}>
+            <FlatList
+              data={accountTypes}
+              renderItem={renderDropdownItem}
+              keyExtractor={(item) => item.value}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {errorMessage ? <Text style={globalStyles.error}>{errorMessage}</Text> : null}
+
+      <TouchableOpacity
+        style={[globalStyles.button, isLoading && { opacity: 0.7 }]}
+        onPress={handleSignup}
+        disabled={isLoading}
+      >
+        <Text style={globalStyles.buttonText}>
+          {isLoading ? "Signing Up..." : "Sign Up"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Login")}
+        disabled={isLoading}
+      >
+        <Text style={globalStyles.linkText}>Already have an account? Login</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+// Additional styles for the custom dropdown
+const styles = StyleSheet.create({
+  dropdownButton: {
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropdownContainer: {
+    backgroundColor: "white",
+    width: "80%",
+    maxHeight: 200,
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  dropdownItemText: {
+    fontSize: 16,
+  },
+});
+
+export default SignupScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SplashScreen.js
+<DOCUMENT>
+import React, { useEffect, useContext } from 'react';
+import { View, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../context/AuthContext';
+import globalStyles from '../styles/globalStyles';
+
+const SplashScreen = () => {
+  const navigation = useNavigation();
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user) {
+        console.log('SplashScreen: User exists, navigating to Home');
+        navigation.replace('Home');
+      } else {
+        console.log('SplashScreen: No user, navigating to Onboarding');
+        navigation.replace('Onboarding');
+      }
+    }, 3000); // 3 seconds
+
+    return () => clearTimeout(timer);
+  }, [navigation, user]);
+
+  return (
+    <View style={globalStyles.centeredContainer}>
+      {/* Logo: Two overlapping circles */}
+      <View style={globalStyles.logoContainer}>
+        <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+        <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+      </View>
+
+      {/* Main text: "Aut Bank" */}
+      <Text style={globalStyles.textXLarge}>Aut Bank</Text>
+
+      {/* Subtext: "Your Best Money Transfer Partner." */}
+      <Text style={globalStyles.textSmall}>Your Best Money Transfer Partner.</Text>
+
+      {/* Footer text: "Secured by TransferMe." */}
+      <Text
+        style={[
+          globalStyles.textSmall,
+          {
+            position: 'absolute',
+            bottom: globalStyles.SPACING.large,
+            fontSize: globalStyles.FONT_SIZES.small,
+            color: globalStyles.COLORS.secondary,
+          },
+        ]}
+      >
+        Secured by TransferMe.
+      </Text>
+    </View>
+  );
+};
+
+export default SplashScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/TransactionsScreen.js
+<DOCUMENT>
+import React, { useState, useContext } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useQuery } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { getTransactions, exportTransactions } from '../services/transactionService';
+import { formatCurrency } from '../utils/helpers';
+import globalStyles from '../styles/globalStyles';
+
+const TransactionsScreen = () => {
+  const { user } = useContext(AuthContext);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
+
+  const { data: transactions, isLoading, refetch } = useQuery(
+    ['transactions', { page, per_page: perPage }],
+    () => getTransactions({ page, per_page: perPage }),
+    { enabled: !!user }
+  );
+
+  const handleExport = async () => {
+    try {
+      const response = await exportTransactions({ page, per_page: perPage });
+      // Handle CSV download (e.g., save to device or open)
+      alert('Transactions exported successfully');
+    } catch (error) {
+      alert(error.message || 'Failed to export transactions');
+    }
+  };
+
+  const renderTransaction = ({ item }) => (
+    <View style={styles.transaction}>
+      <Text style={[styles.transactionIcon, { color: item.TransactionType === 'Deposit' ? '#2ecc71' : '#e74c3c' }]}>
+        {item.TransactionType === 'Deposit' ? '↓' : '↑'}
+      </Text>
+      <View style={styles.transactionDetails}>
+        <Text style={styles.transactionDescription}>{item.Description || item.TransactionType}</Text>
+        <Text style={styles.transactionDate}>{item.Timestamp}</Text>
+      </View>
+      <Text style={[styles.transactionAmount, { color: item.TransactionType === 'Deposit' ? '#2ecc71' : '#e74c3c' }]}>
+        {item.TransactionType === 'Deposit' ? '+' : '-'}{formatCurrency(item.Amount)}
+      </Text>
+    </View>
+  );
+
+  if (!user) {
+    return (
+      <View style={globalStyles.container}>
+        <Text>Please log in to view transactions</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={globalStyles.container}>
+      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
+        Transaction History
+      </Text>
+      {isLoading ? (
+        <Text>Loading transactions...</Text>
+      ) : (
+        <>
+          <FlatList
+            data={transactions?.data || []}
+            renderItem={renderTransaction}
+            keyExtractor={(item) => item.TransactionID.toString()}
+            onEndReached={() => transactions?.total_pages > page && setPage(page + 1)}
+            onEndReachedThreshold={0.5}
+          />
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={handleExport}
+          >
+            <Text style={globalStyles.buttonText}>Export Transactions</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  transaction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: globalStyles.COLORS.gray,
+  },
+  transactionIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  transactionDetails: {
+    flex: 1
+  }})
+
+export default TransactionsScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/WelcomeScreen.js
+<DOCUMENT>
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+
+const WelcomeScreen = () => {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Clear AsyncStorage to remove any existing account
+        await AsyncStorage.clear();
+        console.log('AsyncStorage cleared');
+      } catch (error) {
+        console.error('Error clearing AsyncStorage:', error);
+      } finally {
+        // Navigate to Login Screen after 2 seconds
+        setTimeout(() => {
+          navigation.replace('Login');
+        }, 2000);
+      }
+    };
+
+    initializeApp();
+  }, [navigation]);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>AutFinanceBank</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#007bff',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+});
+
+export default WelcomeScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/WithdrawScreen.js
+<DOCUMENT>
+// screens/BillsScreen.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const WithdrawScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Withdraw Screen</Text>
+  </View>
+);
+
+export default WithdrawScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupStep/SignupStep1.js
+<DOCUMENT>
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { checkUsernameUnique } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep1 = ({ navigation }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateInputs = async () => {
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedFirstName || !trimmedLastName || !trimmedUsername) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+
+    if (trimmedUsername.length < 3) {
+      setErrorMessage('Username must be at least 3 characters');
+      return false;
+    }
+
+    try {
+      const result = await checkUsernameUnique(trimmedUsername);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep1 checkUsernameUnique error:', error);
+      setErrorMessage('Failed to validate username. Please try again.');
+      return false;
+    }
+  };
+
+  const handleNext = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateInputs())) {
+        return;
+      }
+      console.log('SignupStep1: Navigating to SignupStep2 with data:', {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: username.trim(),
+      });
+      navigation.navigate('SignupStep2', {
+        signupData: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: username.trim(),
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep1 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 0 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="First Name"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Last Name"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Username"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            editable={!isLoading}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Checking...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+export default SignupStep1;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupStep/SignupStep2.js
+<DOCUMENT>
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import { checkCnicUnique } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep2 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [cnic, setCnic] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState(new Date(2000, 0, 1));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const formatCnic = (input) => {
+    const digits = input.replace(/\D/g, '');
+    if (digits.length <= 5) return digits;
+    if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12, 13)}`;
+  };
+
+  const validateInputs = async () => {
+    const trimmedCnic = cnic.replace(/\D/g, '');
+    const trimmedPhoneNumber = phoneNumber.trim();
+
+    if (!trimmedCnic || !trimmedPhoneNumber) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+    if (trimmedCnic.length !== 13) {
+      setErrorMessage('Please enter a valid 13-digit CNIC number');
+      return false;
+    }
+
+    try {
+      const result = await checkCnicUnique(trimmedCnic);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('SignupStep2 checkCnicUnique error:', error);
+      setErrorMessage('Failed to validate CNIC. Please try again.');
+      return false;
+    }
+
+    const today = new Date();
+    const age = today.getFullYear() - dateOfBirth.getFullYear() - (today.getMonth() < dateOfBirth.getMonth() || (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
+    if (age < 18) {
+      setErrorMessage('You must be at least 18 years old to sign up');
+      return false;
+    }
+
+    const phoneRegex = /^\+?\d{10,15}$/;
+    if (!phoneRegex.test(trimmedPhoneNumber)) {
+      setErrorMessage('Please enter a valid phone number (10-15 digits, optional + prefix)');
+      return false;
+    }
+    return true;
+  };
+
+  const handleNext = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateInputs())) {
+        return;
+      }
+      const formattedCnic = formatCnic(cnic);
+      const trimmedPhoneNumber = phoneNumber.trim();
+      console.log('SignupStep2: Navigating to SignupStep3 with data:', {
+        ...signupData,
+        cnic: formattedCnic,
+        dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
+        phoneNumber: trimmedPhoneNumber,
+      });
+      navigation.navigate('SignupStep3', {
+        signupData: {
+          ...signupData,
+          cnic: formattedCnic,
+          dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
+          phoneNumber: trimmedPhoneNumber,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep2 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dateOfBirth;
+    setShowDatePicker(Platform.OS === 'ios'); // Auto-close on Android
+    setDateOfBirth(currentDate);
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 1 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="CNIC (e.g., 12345-6789012-3)"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="numeric"
+            value={cnic}
+            onChangeText={(text) => setCnic(formatCnic(text))}
+            maxLength={15} // 13 digits + 2 dashes
+            editable={!isLoading}
+          />
+          <TouchableOpacity
+            style={globalStyles.input}
+            onPress={() => !isLoading && setShowDatePicker(true)}
+            disabled={isLoading}
+          >
+            <Text style={{ color: globalStyles.COLORS.text }}>
+              {format(dateOfBirth, 'yyyy-MM-dd')}
+            </Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <Modal transparent animationType="fade">
+              <View style={styles.datePickerModal}>
+                <View style={styles.datePickerContainer}>
+                  <DateTimePicker
+                    value={dateOfBirth}
+                    mode="date"
+                    display="default"
+                    onChange={onDateChange}
+                    maximumDate={new Date()}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <TouchableOpacity
+                      style={styles.datePickerButton}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <Text style={styles.datePickerButtonText}>Done</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </Modal>
+          )}
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Phone Number (e.g., +1234567890)"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="phone-pad"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            editable={!isLoading}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Checking...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  datePickerModal: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  datePickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  datePickerButton: {
+    marginTop: 10,
+    backgroundColor: globalStyles.COLORS.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  datePickerButtonText: {
+    color: globalStyles.COLORS.white,
+    fontSize: 16,
+  },
+});
+
+export default SignupStep2;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupStep/SignupStep3.js
+<DOCUMENT>
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep3 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateInputs = () => {
+    const trimmedStreetAddress = streetAddress.trim();
+    const trimmedCity = city.trim();
+    const trimmedCountry = country.trim();
+    const trimmedPostalCode = postalCode.trim();
+
+    if (!trimmedStreetAddress || !trimmedCity || !trimmedCountry || !trimmedPostalCode) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+
+    const postalCodeRegex = /^[a-zA-Z0-9]{4,10}$/;
+    if (!postalCodeRegex.test(trimmedPostalCode)) {
+      setErrorMessage('Postal code must be 4-10 alphanumeric characters');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!validateInputs()) {
+        setIsLoading(false);
+        return;
+      }
+      const trimmedData = {
+        streetAddress: streetAddress.trim(),
+        city: city.trim(),
+        country: country.trim(),
+        postalCode: postalCode.trim(),
+      };
+      console.log('SignupStep3: Navigating to SignupStep4 with data:', {
+        ...signupData,
+        ...trimmedData,
+      });
+      navigation.navigate('SignupStep4', {
+        signupData: {
+          ...signupData,
+          ...trimmedData,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep3 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 2 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Street Address"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={streetAddress}
+            onChangeText={setStreetAddress}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="City"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={city}
+            onChangeText={setCity}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Country"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            value={country}
+            onChangeText={setCountry}
+            autoCapitalize="words"
+            editable={!isLoading}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Postal Code"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="default"
+            value={postalCode}
+            onChangeText={setPostalCode}
+            editable={!isLoading}
+          />
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Processing...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+export default SignupStep3;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupStep/SignupStep4.js
+<DOCUMENT>
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Image } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { checkEmailUniqueAndSendOtp } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep4 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const selectImage = () => {
+    launchImageLibrary(
+      { mediaType: 'photo', maxWidth: 100, maxHeight: 100, quality: 0.5 },
+      (response) => {
+        if (response.didCancel) {
+          console.log('SignupStep4: Image picker cancelled');
+        } else if (response.errorCode) {
+          console.error('SignupStep4 image picker error:', response.errorMessage);
+          setErrorMessage('Failed to select image. Please try again.');
+        } else if (response.assets && response.assets[0].uri) {
+          setProfileImage(response.assets[0].uri);
+          setErrorMessage('');
+        }
+      }
+    );
+  };
+
+  const validateInputs = async () => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+      setErrorMessage('All fields are required');
+      return false;
+    }
+
+    if (!profileImage) {
+      setErrorMessage('Please select a profile picture');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMessage('Please enter a valid email address');
+      return false;
+    }
+
+    try {
+      const result = await checkEmailUniqueAndSendOtp(trimmedEmail);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('SignupStep4 checkEmailUniqueAndSendOtp error:', error);
+      setErrorMessage('Failed to validate email. Please try again.');
+      return false;
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(trimmedPassword)) {
+      setErrorMessage('Password must be at least 8 characters, including an uppercase letter and a number');
+      return false;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNext = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateInputs())) {
+        return;
+      }
+      const trimmedData = { email: email.trim(), password: password.trim(), profileImage };
+      console.log('SignupStep4: Navigating to SignupStep5 with data:', {
+        ...signupData,
+        ...trimmedData,
+      });
+      navigation.navigate('SignupStep5', {
+        signupData: {
+          ...signupData,
+          ...trimmedData,
+        },
+      });
+    } catch (error) {
+      console.error('SignupStep4 handleNext error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Sign Up
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 3 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <TouchableOpacity
+            style={[globalStyles.button, styles.imageButton, isLoading && { opacity: 0.7 }]}
+            onPress={selectImage}
+            disabled={isLoading}
+          >
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <Text style={globalStyles.buttonText}>Upload Profile Picture</Text>
+            )}
+          </TouchableOpacity>
+          <TextInput
+            style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+            placeholder="Email Address"
+            placeholderTextColor={globalStyles.COLORS.placeholder}
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            editable={!isLoading}
+          />
+          <View style={{ position: 'relative', width: '100%' }}>
+            <TextInput
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+              placeholder="Password"
+              placeholderTextColor={globalStyles.COLORS.placeholder}
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
+            >
+              <Icon
+                name={showPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={globalStyles.COLORS.placeholder}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={{ position: 'relative', width: '100%' }}>
+            <TextInput
+              style={[globalStyles.input, { color: globalStyles.COLORS.text }]}
+              placeholder="Confirm Password"
+              placeholderTextColor={globalStyles.COLORS.placeholder}
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              disabled={isLoading}
+            >
+              <Icon
+                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={globalStyles.COLORS.placeholder}
+              />
+            </TouchableOpacity>
+          </View>
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>{isLoading ? 'Checking...' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  imageButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: globalStyles.SPACING.medium,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+});
+
+export default SignupStep4;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupStep/SignupStep5.js
+<DOCUMENT>
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { verifyOtp } from '../../services/api';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep5 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const refs = Array(6).fill().map(() => React.createRef());
+
+  const handleOtpChange = (value, index) => {
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 1) return; // Limit to single digit
+    const newOtp = [...otp];
+    newOtp[index] = trimmedValue;
+    setOtp(newOtp);
+    setErrorMessage(''); // Clear error on input
+
+    if (trimmedValue && index < 5) {
+      refs[index + 1].current.focus();
+    } else if (!trimmedValue && index > 0) {
+      refs[index - 1].current.focus();
+    }
+  };
+
+  const validateOtp = async () => {
+    const otpString = otp.join('');
+    if (otpString.length !== 6 || isNaN(otpString)) {
+      setErrorMessage('Please enter a valid 6-digit OTP');
+      return false;
+    }
+
+    try {
+      const result = await verifyOtp(signupData.email, otpString);
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep5 verifyOtp error:', error);
+      setErrorMessage('Failed to verify OTP. Please try again.');
+      return false;
+    }
+  };
+
+  const handleVerify = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      if (!(await validateOtp())) {
+        return;
+      }
+      console.log('SignupStep5: Navigating to SignupStep6 with data:', signupData);
+      navigation.navigate('SignupStep6', { signupData });
+    } catch (error) {
+      console.error('SignupStep5 handleVerify error:', error);
+      setErrorMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+          <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+            <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+            <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+          </View>
+          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+            Email Verification
+          </Text>
+          <View style={globalStyles.dotContainer}>
+            {[...Array(6)].map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  globalStyles.dot,
+                  index === 4 ? globalStyles.dotActive : globalStyles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: globalStyles.input.width }}>
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={refs[index]}
+                style={[styles.otpInput, { borderColor: errorMessage ? globalStyles.COLORS.error : globalStyles.COLORS.gray }]}
+                keyboardType="numeric"
+                maxLength={1}
+                value={digit}
+                onChangeText={(value) => handleOtpChange(value, index)}
+                editable={!isLoading}
+              />
+            ))}
+          </View>
+          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+          <TouchableOpacity
+            style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
+            onPress={handleVerify}
+            disabled={isLoading}
+          >
+            <Text style={globalStyles.buttonText}>
+              {isLoading ? 'Verifying...' : 'Verify OTP'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  otpInput: {
+    width: 40,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 8,
+    textAlign: 'center',
+    fontSize: globalStyles.FONT_SIZES.medium,
+    marginHorizontal: 5,
+    color: globalStyles.COLORS.text,
+  },
+});
+
+export default SignupStep5;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/SignupStep/SignupStep6.js
+<DOCUMENT>
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { registerUser } from '../../services/authService';
+import { formatCnic } from '../../utils/helpers';
+import globalStyles from '../../styles/globalStyles';
+
+const SignupStep6 = ({ navigation, route }) => {
+  const { signupData } = route.params;
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const submitData = async () => {
+      try {
+        const userData = {
+          Username: signupData.username,
+          FirstName: signupData.firstName,
+          LastName: signupData.lastName,
+          StreetAddress: signupData.streetAddress,
+          City: signupData.city,
+          Country: signupData.country,
+          PostalCode: signupData.postalCode,
+          PhoneNumber: signupData.phoneNumber,
+          CNIC: formatCnic(signupData.cnic),
+          Email: signupData.email,
+          Password: signupData.password,
+          AccountType: 'Savings', // Default
+          DateOfBirth: signupData.dateOfBirth,
+          IsActive: false,
+        };
+        const result = await registerUser(userData);
+        if (result.success) {
+          console.log('SignupStep6: User registered successfully');
+          setIsLoading(false);
+        } else {
+          setErrorMessage(result.message);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('SignupStep6 submitData error:', error);
+        setErrorMessage(error.message || 'An error occurred while registering');
+        setIsLoading(false);
+      }
+    };
+
+    submitData();
+  }, [signupData]);
+
+  return (
+    <View style={[globalStyles.container, { alignItems: 'flex-start' }]}>
+      <View style={[globalStyles.logoContainer, { marginLeft: globalStyles.SPACING.medium, marginTop: globalStyles.SPACING.large }]}>
+        <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
+        <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
+      </View>
+      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
+        Account Created
+      </Text>
+      <View style={globalStyles.dotContainer}>
+        {[...Array(6)].map((_, index) => (
+          <View
+            key={index}
+            style={[
+              globalStyles.dot,
+              index === 5 ? globalStyles.dotActive : globalStyles.dotInactive,
+            ]}
+          />
+        ))}
+      </View>
+      {isLoading ? (
+        <Text style={[globalStyles.text, { textAlign: 'center', marginVertical: globalStyles.SPACING.large }]}>
+          Your account is being created. Please wait...
+        </Text>
+      ) : errorMessage ? (
+        <Text style={[globalStyles.textError, { textAlign: 'center', marginVertical: globalStyles.SPACING.large }]}>
+          {errorMessage}
+        </Text>
+      ) : (
+        <View style={styles.messageContainer}>
+          <Text style={styles.successMessage}>
+            Waiting for admin approval, we will notify you via email once approved.
+          </Text>
+        </View>
+      )}
+      {!isLoading && (
+        <TouchableOpacity
+          style={[globalStyles.button, styles.loginButton, { alignSelf: 'center' }]}
+          onPress={() => navigation.replace('Login')}
+        >
+          <Text style={globalStyles.buttonText}>Go to Login</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  messageContainer: {
+    backgroundColor: globalStyles.COLORS.primary,
+    borderRadius: 10,
+    padding: 15,
+    marginVertical: globalStyles.SPACING.large,
+    marginHorizontal: 20,
+    alignItems: 'center',
+  },
+  successMessage: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: globalStyles.COLORS.white,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  loginButton: {
+    backgroundColor: globalStyles.COLORS.secondary,
+    width: '60%',
+  },
+});
+
+export default SignupStep6;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/api.js
+<DOCUMENT>
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '@env';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+});
+
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  console.log('api.js: Request:', config.method.toUpperCase(), config.url, config.headers);
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => {
+    console.log('api.js: Response:', response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('api.js: Response error:', error.response?.status, error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/authService.js
+<DOCUMENT>
+import api from './api';
+import { formatCnic } from '../utils/helpers';
+
+export const loginUser = async (loginId, password) => {
+  return api.post('/users/login', { login_id: loginId, Password: password });
+};
+
+export const registerUser = async (userData) => {
+  const formattedData = {
+    ...userData,
+    CNIC: formatCnic(userData.cnic),
+    IsActive: false,
+    AccountType: userData.accountType || 'Savings',
+    DateOfBirth: userData.dateOfBirth,
+  };
+  return api.post('/users/register', formattedData);
+};
+
+export const refreshToken = async (refreshToken) => {
+  return api.post('/users/refresh', { token: refreshToken });
+};
+
+export const sendOtpForPasswordReset = async (email) => {
+  // Note: Backend doesn't have this endpoint; using mock logic for now
+  return { success: true, message: 'OTP sent successfully' };
+};
+
+export const verifyOtpAndResetPassword = async (email, otp, newPassword) => {
+  // Note: Backend doesn't have this endpoint; using mock logic for now
+  if (otp === '123456') {
+    return { success: true, message: 'Password reset successfully' };
+  }
+  return { success: false, message: 'Invalid OTP' };
+};
+
+export const checkUsernameUnique = async (username) => {
+  try {
+    await api.get(`/users/check-username/${username}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const checkCnicUnique = async (cnic) => {
+  try {
+    await api.get(`/users/check-cnic/${formatCnic(cnic)}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const checkEmailUniqueAndSendOtp = async (email) => {
+  try {
+    await api.get(`/users/check-email/${email}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const verifyOtp = async (email, otp) => {
+  // Note: Backend doesn't have this endpoint; using mock logic for now
+  return { success: true };
+};
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/loanService.js
+<DOCUMENT>
+import api from './api';
+
+export const applyForLoan = async (loanData) => {
+  return api.post('/users/loans/apply', loanData);
+};
+
+export const getLoanTypes = async () => {
+  return api.get('/users/loans/types');
+};
+
+export const makeLoanPayment = async (paymentData) => {
+  return api.post('/users/loans/payments', paymentData);
+};
+
+export const getLoans = async (params) => {
+  return api.get('/users/loans', { params });
+};
+
+export const getLoanPayments = async (loanId, params) => {
+  return api.get(`/users/loans/${loanId}/payments`, { params });
+};
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/mockData.js
+<DOCUMENT>
+// services/mockData.js
+export const mockUsers = [
+  {
+    userId: 1,
+    username: 'manidoe',
+    firstName: 'Mani',
+    lastName: 'Doe',
+    email: 'mani.doe@example.com',
+    password: 'password123',
+    cnic: '12345-6789012-3',
+    accountType: 'Savings',
+    balance: 285856.20,
+    phoneNumber: '+1234567890',
+    streetAddress: '123 Main St',
+    city: 'Karachi',
+    country: 'Pakistan',
+    postalCode: '75000',
+    dateOfBirth: '1990-01-15',
+    isActive: true,
+    createdAt: '2025-01-01T10:00:00Z',
+    profileImage: require('../Assets/images/users/user1.jpg'),
+    incomingTransactions: [
+      {
+        id: 1,
+        senderId: 2,
+        senderName: 'Johnny Bairstow',
+        amount: 54.23,
+        date: '2020-12-23',
+        referenceNumber: 'TRX001',
+      },
+      {
+        id: 2,
+        senderId: 3,
+        senderName: 'Charles Smith',
+        amount: 62.54,
+        date: '2020-12-22',
+        referenceNumber: 'TRX002',
+      },
+    ],
+    outgoingTransactions: [
+      {
+        id: 1,
+        recipientId: 4,
+        recipientName: 'John Brown',
+        amount: 396.84,
+        date: '2021-12-12',
+        referenceNumber: 'TRX003',
+      },
+      {
+        id: 2,
+        recipientId: 5,
+        recipientName: 'Mellony Jane',
+        amount: 45.21,
+        date: '2021-12-12',
+        referenceNumber: 'TRX004',
+      },
+    ],
+  },
+  {
+    userId: 2,
+    username: 'johnnyb',
+    firstName: 'Johnny',
+    lastName: 'Bairstow',
+    email: 'johnny.b@example.com',
+    password: 'pass456',
+    cnic: '54321-0987654-3',
+    accountType: 'Current',
+    balance: 15000.75,
+    phoneNumber: '+1987654321',
+    streetAddress: '456 Oak Ave',
+    city: 'Lahore',
+    country: 'Pakistan',
+    postalCode: '54000',
+    dateOfBirth: '1985-03-22',
+    isActive: true,
+    createdAt: '2025-02-01T12:00:00Z',
+    profileImage: require('../Assets/images/users/user2.jpg'),
+    incomingTransactions: [],
+    outgoingTransactions: [
+      {
+        id: 3,
+        recipientId: 1,
+        recipientName: 'Mani Doe',
+        amount: 54.23,
+        date: '2020-12-23',
+        referenceNumber: 'TRX001',
+      },
+    ],
+  },
+  {
+    userId: 3,
+    username: 'charless',
+    firstName: 'Charles',
+    lastName: 'Smith',
+    email: 'charles.s@example.com',
+    password: 'pass789',
+    cnic: '67890-1234567-8',
+    accountType: 'Savings',
+    balance: 7500.30,
+    phoneNumber: '+1122334455',
+    streetAddress: '789 Pine Rd',
+    city: 'Islamabad',
+    country: 'Pakistan',
+    postalCode: '44000',
+    dateOfBirth: '1992-07-10',
+    isActive: false,
+    createdAt: '2025-03-01T15:00:00Z',
+    profileImage: require('../Assets/images/users/user3.jpg'),
+    incomingTransactions: [],
+    outgoingTransactions: [
+      {
+        id: 4,
+        recipientId: 1,
+        recipientName: 'Mani Doe',
+        amount: 62.54,
+        date: '2020-12-22',
+        referenceNumber: 'TRX002',
+      },
+    ],
+  },
+];
+
+export const mockRecipients = [
+  {
+    recipientId: 2,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
+    recipientId: 3,
+    name: 'Charles Smith',
+    email: 'charles.s@example.com',
+    image: require('../Assets/images/recipients/recipients2.jpg'),
+  },
+  {
+    recipientId: 4,
+    name: 'John Brown',
+    email: 'john.brown@example.com',
+    image: require('../Assets/images/recipients/recipients3.jpg'),
+  },
+  {
+    recipientId: 5,
+    name: 'Mellony Jane',
+    email: 'mellony.j@example.com',
+    image: require('../Assets/images/recipients/recipients4.jpg'),
+  },
+];
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/socket.js
+<DOCUMENT>
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WS_BASE_URL } from '@env';
+import api from './api';
+
+const initializeWebSocket = async (accessToken) => {
+  const token = accessToken || (await AsyncStorage.getItem('accessToken'));
+  if (!token) {
+    console.error('socket.js: No access token available');
+    return null;
+  }
+
+  const wsUrl = `${WS_BASE_URL}/api/v1/ws/user?token=${token}`;
+  const ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    console.log('socket.js: WebSocket connected');
+    ws.send(JSON.stringify({ type: 'ping' }));
+  };
+
+  ws.onmessage = (event) => {
+    console.log('socket.js: WebSocket message:', event.data);
+  };
+
+  ws.onerror = (error) => {
+    console.error('socket.js: WebSocket error:', error);
+  };
+
+  ws.onclose = async (event) => {
+    console.log(`socket.js: WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
+    if (event.code === 4001) {
+      try {
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+        const response = await api.post('/api/v1/users/refresh', { refreshToken });
+        const newAccessToken = response.data.access_token;
+        await AsyncStorage.setItem('accessToken', newAccessToken);
+        console.log('socket.js: New Access Token:', newAccessToken);
+        return initializeWebSocket(newAccessToken);
+      } catch (error) {
+        console.error('socket.js: Token refresh failed:', error.response?.data || error.message);
+      }
+    }
+  };
+
+  return ws;
+};
+
+export default initializeWebSocket;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/transactionService.js
+<DOCUMENT>
+import api from './api';
+
+export const getTransactions = async (params) => {
+  return api.get('/users/transactions', { params });
+};
+
+export const exportTransactions = async (params) => {
+  return api.get('/users/transactions/export', { params, responseType: 'blob' });
+};
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/userService.js
+<DOCUMENT>
+import api from './api';
+
+export const getUserDetails = async () => {
+  try {
+    const response = await api.get('/api/v1/users/me');
+    console.log('UserServices: getUserDetails response:', response.data);
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || 'Failed to fetch user details');
+  } catch (error) {
+    console.error('UserServices: getUserDetails error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getUserTransactions = async () => {
+  try {
+    const response = await api.get('/api/v1/users/transactions');
+    console.log('UserServices: getUserTransactions response:', response.data);
+    if (response.data.success) {
+      return response.data.data.map((t) => ({
+        id: `${t.type}-${t.id}`,
+        type: t.type,
+        description: t.type === 'credit' ? `From ${t.senderName}` : `To ${t.recipientName}`,
+        amount: t.amount,
+        date: t.date,
+      }));
+    }
+    throw new Error(response.data.message || 'Failed to fetch transactions');
+  } catch (error) {
+    console.error('UserServices: getUserTransactions error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/withdrawalService.js
+<DOCUMENT>
+import api from './api';
+
+export const createWithdrawal = async (withdrawalData) => {
+  return api.post('/atm/withdraw', withdrawalData);
+};
+</DOCUMENT>
+
+c:/AutFinanceBank/src/styles/globalStyles.js
+<DOCUMENT>
+import { StyleSheet, Dimensions } from 'react-native';
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('screen');
+
+// Color palette
+const COLORS = {
+  primary: '#1E3A8A',
+  secondary: '#60A5FA',
+  background: '#FFFFFF',
+  text: '#333333',
+  placeholder: '#A9A9A9', // Ensure this is a visible color
+  success: '#28A745',
+  danger: '#DC3545',
+  white: '#FFFFFF',
+  black: '#000000',
+  gray: '#E5E7EB',
+  dotActive: '#60A5FA',
+  dotInactive: '#D1D5DB',
+};
+
+// Font sizes
+const FONT_SIZES = {
+  tiny: 10,
+  small: 12,
+  medium: 16,
+  large: 20,
+  xlarge: 32,
+};
+
+// Common spacing
+const SPACING = {
+  tiny: 4,
+  small: 8,
+  medium: 16,
+  large: 24,
+  xlarge: 32,
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SPACING.medium,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  text: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+  },
+  textTiny: {
+    fontSize: FONT_SIZES.tiny,
+    color: COLORS.text,
+  },
+  textSmall: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.secondary,
+  },
+  textSmallGray: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.placeholder,
+    textAlign: 'center',
+  },
+  textLarge: {
+    fontSize: FONT_SIZES.large,
+    color: COLORS.text,
+    fontWeight: 'bold',
+  },
+  textXLarge: {
+    fontSize: FONT_SIZES.xlarge,
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  textXLargeBlack: {
+    fontSize: FONT_SIZES.xlarge,
+    color: COLORS.text,
+    fontWeight: 'bold',
+  },
+  textError: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.danger,
+    marginBottom: SPACING.small,
+  },
+  textSuccess: {
+    fontSize: FONT_SIZES.small,
+    color: COLORS.success,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.medium,
+  },
+  circle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  circlePrimary: {
+    backgroundColor: COLORS.primary,
+    marginRight: -20,
+  },
+  circleSecondary: {
+    backgroundColor: COLORS.secondary,
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.medium,
+    paddingHorizontal: SPACING.xlarge,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.small,
+    width: width * 0.7,
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.medium,
+    fontWeight: '600',
+  },
+  buttonSecondary: {
+    backgroundColor: COLORS.secondary,
+    paddingVertical: SPACING.medium,
+    paddingHorizontal: SPACING.xlarge,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.small,
+    width: width * 0.7,
+  },
+  buttonOutline: {
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    paddingVertical: SPACING.medium,
+    paddingHorizontal: SPACING.xlarge,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.small,
+    width: width * 0.7,
+  },
+  buttonOutlineText: {
+    color: COLORS.primary,
+    fontSize: FONT_SIZES.medium,
+    fontWeight: '600',
+  },
+  dotContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: SPACING.medium,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: SPACING.tiny,
+  },
+  dotActive: {
+    backgroundColor: COLORS.dotActive,
+  },
+  dotInactive: {
+    backgroundColor: COLORS.dotInactive,
+  },
+  dotFirst: {
+    backgroundColor: COLORS.danger,
+  },
+  placeholderLogo: {
+    fontSize: 100,
+    color: COLORS.primary,
+    marginBottom: SPACING.medium,
+  },
+  input: {
+  width: '100%',
+  height: 50,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 8,
+  paddingHorizontal: 10,
+  marginVertical: 10,
+  fontSize: 16,
+},
+  inputFocused: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  inputError: {
+    borderColor: COLORS.danger,
+    borderWidth: 1,
+  },
+  inputLabel: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    marginBottom: SPACING.tiny,
+  },
+  linkText: {
+    fontSize: FONT_SIZES.medium,
+    color: COLORS.text,
+    marginTop: SPACING.medium,
+  },
+});
+
+const globalStyles = {
+  ...styles,
+  SPACING,
+  COLORS,
+  FONT_SIZES,
+};
+
+export default globalStyles;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/utils/helpers.js
+<DOCUMENT>
+export const formatCnic = (cnic) => {
+    const digits = cnic.replace(/\D/g, '');
+    if (digits.length !== 13) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+  };
+  
+  export const formatDate = (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  
+  export const formatCurrency = (amount) => {
+    return `$${Number(amount).toFixed(2)}`;
+  };
+  
+  export const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+</DOCUMENT>
+
+c:/AutFinanceBank/src/utils/validators.js
+<DOCUMENT>
+import * as Yup from 'yup';
+
+export const UserCreateSchema = Yup.object().shape({
+  Username: Yup.string().min(3).max(50).required('Username is required'),
+  FirstName: Yup.string().max(50).required('First name is required'),
+  LastName: Yup.string().max(50).required('Last name is required'),
+  StreetAddress: Yup.string().max(255).nullable(),
+  City: Yup.string().max(50).nullable(),
+  State: Yup.string().max(50).nullable(),
+  Country: Yup.string().max(50).nullable(),
+  PostalCode: Yup.string().max(20).nullable(),
+  PhoneNumber: Yup.string().max(20).nullable(),
+  CNIC: Yup.string()
+    .matches(/^\d{5}-\d{7}-\d$/, 'Invalid CNIC format (e.g., 12345-6789012-3)')
+    .required('CNIC is required'),
+  Email: Yup.string().email('Invalid email').required('Email is required'),
+  Password: Yup.string().min(8).max(255).required('Password is required'),
+  AccountType: Yup.string().oneOf(['Savings', 'Current']).required('Account type is required'),
+  DateOfBirth: Yup.string()
+    .matches(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .required('Date of birth is required'),
+});
+
+export const UserLoginSchema = Yup.object().shape({
+  login_id: Yup.string().required('Email or username is required'),
+  Password: Yup.string().min(8).required('Password is required'),
+});
+
+export const UserUpdateSchema = Yup.object().shape({
+  Username: Yup.string().min(3).max(50).nullable(),
+  FirstName: Yup.string().max(50).nullable(),
+  LastName: Yup.string().max(50).nullable(),
+  StreetAddress: Yup.string().max(255).nullable(),
+  City: Yup.string().max(50).nullable(),
+  State: Yup.string().max(50).nullable(),
+  Country: Yup.string().max(50).nullable(),
+  PostalCode: Yup.string().max(20).nullable(),
+  PhoneNumber: Yup.string().max(20).nullable(),
+  Email: Yup.string().email('Invalid email').nullable(),
+});
+
+export const UserPasswordUpdateSchema = Yup.object().shape({
+  CurrentPassword: Yup.string().min(8).required('Current password is required'),
+  NewPassword: Yup.string().min(8).required('New password is required'),
+});
+
+export const TransferCreateSchema = Yup.object().shape({
+  cnic: Yup.string()
+    .matches(/^\d{5}-\d{7}-\d$/, 'Invalid CNIC format')
+    .nullable(),
+  username: Yup.string().min(3).max(50).nullable(),
+  email: Yup.string().email('Invalid email').nullable(),
+  Amount: Yup.number().positive('Amount must be positive').required('Amount is required'),
+  Description: Yup.string().nullable(),
+})
+  .test('one-of-identifier', 'One of CNIC, username, or email is required', (value) => {
+    return !!(value.cnic || value.username || value.email);
+  });
+
+export const CardCreateSchema = Yup.object().shape({
+  CardNumber: Yup.string()
+    .matches(/^\d{16}$/, 'Card number must be 16 digits')
+    .required('Card number is required'),
+  Pin: Yup.string()
+    .matches(/^\d{4}$/, 'PIN must be 4 digits')
+    .required('PIN is required'),
+  ExpirationDate: Yup.string()
+    .matches(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .required('Expiration date is required'),
+});
+
+export const CardUpdateSchema = Yup.object().shape({
+  Pin: Yup.string().matches(/^\d{4}$/, 'PIN must be 4 digits').nullable(),
+  Status: Yup.string().oneOf(['Active', 'Inactive', 'Blocked']).nullable(),
+});
+
+export const LoanApplySchema = Yup.object().shape({
+  LoanTypeID: Yup.number().positive().required('Loan type is required'),
+  LoanAmount: Yup.number().positive('Loan amount must be positive').required('Loan amount is required'),
+  LoanDurationMonths: Yup.number().positive().required('Loan duration is required'),
+  DueDate: Yup.string()
+    .matches(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .required('Due date is required'),
+});
+
+export const LoanPaymentCreateSchema = Yup.object().shape({
+  LoanID: Yup.number().positive().required('Loan ID is required'),
+  PaymentAmount: Yup.number().positive('Payment amount must be positive').required('Payment amount is required'),
+});
+
+export const WithdrawalCreateSchema = Yup.object().shape({
+  CardNumber: Yup.string()
+    .matches(/^\d{16}$/, 'Card number must be 16 digits')
+    .required('Card number is required'),
+  Pin: Yup.string()
+    .matches(/^\d{4}$/, 'PIN must be 4 digits')
+    .required('PIN is required'),
+  Amount: Yup.number().positive('Amount must be positive').required('Amount is required'),
+});
+</DOCUMENT>
+

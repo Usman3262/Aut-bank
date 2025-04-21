@@ -5,8 +5,8 @@ const { width, height } = Dimensions.get('screen');
 
 // Color palette
 const COLORS = {
-  primary: '#1E3A8A',
-  secondary: '#60A5FA',
+  primary: '#d4a373',
+  secondary: '#EA7300',
   background: '#FFFFFF',
   text: '#333333',
   placeholder: '#A9A9A9', // Ensure this is a visible color
