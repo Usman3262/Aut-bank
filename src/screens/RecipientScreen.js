@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as recipientStorage from '../services/recipientStorage';
 import globalStyles from '../styles/globalStyles';
-
+import {getUserDetails} from '../services/userService'
 const { COLORS } = globalStyles;
 
 const RecipientScreen = ({ navigation }) => {
@@ -69,6 +69,17 @@ const RecipientScreen = ({ navigation }) => {
     return result;
   }, [recipients, searchQuery, sortByNameAsc]);
 
+  const response = typeof getUserDetails === 'function' ? getUserDetails() : getUserDetails;
+
+  const id = response?.data?.UserID;
+  if (id) {
+    console.log("UserID:", id);
+    recipientStorage.saveMockRecipients(id);
+  } else {
+    console.error("Failed to get UserID from getUserDetails response.");
+  }
+  
+
   const renderRecipient = useCallback(
     ({ item }) => {
       return (
@@ -102,7 +113,7 @@ const RecipientScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {/* Send Money Section */}
-      <View style={styles.sendMoneyContainer}>
+      {/* <View style={styles.sendMoneyContainer}>
         <Text style={styles.sendMoneyHeading}>Send Money Now</Text>
         <Text style={styles.sendMoneySubtext}>Money Transfer to your Favourites</Text>
         <TouchableOpacity
@@ -111,7 +122,7 @@ const RecipientScreen = ({ navigation }) => {
         >
           <Text style={styles.sendButtonText}>SEND NOW</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Find Favourites Section */}
       <Text style={styles.findFavouritesHeading}>Find your Favourites</Text>

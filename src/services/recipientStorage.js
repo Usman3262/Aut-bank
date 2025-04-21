@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {getUserDetails} from './userService'
 // Default image path for recipients
 const DEFAULT_IMAGE_PATH = 'https://via.placeholder.com/200?text=Default+User';
 
@@ -172,42 +172,43 @@ const resetToLocalStorage = async (userId) => {
   }
 };
 
-export { setUserId, initializeRecipients, saveRecipient, getRecipients, deleteRecipients, clearRecipients, resetToLocalStorage };
-// import { mockRecipients } from './RecipientsData';
-// const saveMockRecipients = async (userId) => {
-//     console.log(`recipientStorage: Saving mockRecipients for user ${userId}`);
-//     try {
-//       if (!userId) {
-//         console.error(`recipientStorage: saveMockRecipients failed - UserID is missing`);
-//         throw new Error('UserID is required');
-//       }
+import { mockRecipients } from './RecipientsData';
+const saveMockRecipients = async (userId) => {
+  console.log(`recipientStorage: Saving mockRecipients for user ${userId}`);
+    try {
+      if (!userId) {
+        console.error(`recipientStorage: saveMockRecipients failed - UserID is missing`);
+        throw new Error('UserID is required');
+      }
   
-//       const storageKey = `@recipients:${userId}`;
+      const storageKey = `@recipients:${userId}`;
   
-//       // Delete existing data
-//       const existingData = await AsyncStorage.getItem(storageKey);
-//       if (existingData) {
-//         console.log(`recipientStorage: Deleting existing data for user ${userId}`);
-//         await AsyncStorage.removeItem(storageKey);
-//       }
+      // Delete existing data
+      const existingData = await AsyncStorage.getItem(storageKey);
+      if (existingData) {
+        console.log(`recipientStorage: Deleting existing data for user ${userId}`);
+        await AsyncStorage.removeItem(storageKey);
+      }
+      
+      // Save mockRecipients
+      await AsyncStorage.setItem(storageKey, JSON.stringify(mockRecipients));
+      console.log(`recipientStorage: Saved ${mockRecipients.length} recipients for user ${userId}`);
+      
+      // Verify save
+      const savedData = await AsyncStorage.getItem(storageKey);
+      if (!savedData) {
+        console.error(`recipientStorage: Verification failed - No data found after saving for user ${userId}`);
+        throw new Error('Failed to verify saved data');
+      }
+      const parsedData = JSON.parse(savedData);
+      console.log(`recipientStorage: Verified saved ${parsedData.length} recipients for user ${userId}`);
   
-//       // Save mockRecipients
-//       await AsyncStorage.setItem(storageKey, JSON.stringify(mockRecipients));
-//       console.log(`recipientStorage: Saved ${mockRecipients.length} recipients for user ${userId}`);
-  
-//       // Verify save
-//       const savedData = await AsyncStorage.getItem(storageKey);
-//       if (!savedData) {
-//         console.error(`recipientStorage: Verification failed - No data found after saving for user ${userId}`);
-//         throw new Error('Failed to verify saved data');
-//       }
-//       const parsedData = JSON.parse(savedData);
-//       console.log(`recipientStorage: Verified saved ${parsedData.length} recipients for user ${userId}`);
-  
-//       return mockRecipients;
-//     } catch (error) {
-//       console.error(`recipientStorage: Error in saveMockRecipients: ${error.message}`);
-//       throw error;
-//     }
-//   };
-// saveMockRecipients(6)
+      return mockRecipients;
+    } catch (error) {
+      console.error(`recipientStorage: Error in saveMockRecipients: ${error.message}`);
+      throw error;
+    }
+  };
+    
+  // saveMockRecipients(6)
+  export { setUserId, initializeRecipients, saveRecipient, getRecipients, deleteRecipients, clearRecipients, resetToLocalStorage,saveMockRecipients };

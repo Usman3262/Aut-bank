@@ -63,13 +63,13 @@ const HomeScreen = () => {
 
   const { data: transactionsResponse, isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery(
     ['transactions', user?.UserID],
-    async ()  => {
+    async () => {
       if (!user?.access_token) {
         throw new Error('No access token available');
       }
       const response = await getUserTransactions({ per_page: 10, sort_by: 'Timestamp', order: 'desc' });
       console.log('HomeScreen: getUserTransactions response:', response);
-      return response.data;
+      return response.data.items; // Access items directly
     },
     {
       enabled: !!user?.access_token,
@@ -146,12 +146,22 @@ const HomeScreen = () => {
     };
   }, [user?.access_token]);
 
+   
   
+    const id = user?.UserID;
+    if (id) {
+      console.log("UserID:", id);
+      recipientStorage.saveMockRecipients(id);
+    } else {
+      console.error("Failed to get UserID from getUserDetails response.");
+    }
+    
+
   useEffect(() => {
     const loadRecipients = async () => {
-      console.log('RecipientScreen: Loading recipients for UserID:', user.UserID);
+      console.log('HomeScreen: Loading recipients for UserID:', user.UserID);
       if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
-        console.error('RecipientScreen: recipientStorage module is invalid');
+        console.error('HomeScreen: recipientStorage module is invalid');
         setRecipientsLoading(false);
         setRecipientsError('Failed to load recipient storage module');
         return;
@@ -163,11 +173,9 @@ const HomeScreen = () => {
         await recipientStorage.setUserId(user.UserID);
         const loadedRecipients = await recipientStorage.getRecipients(user.UserID);
         setRecipients(loadedRecipients);
-        console.log('RecipientScreen: Loaded', loadedRecipients.length, 'recipients');
-
-        
+        console.log('HomeScreen: Loaded', loadedRecipients.length, 'recipients');
       } catch (error) {
-        console.error('RecipientScreen: Error loading recipients:', error.message);
+        console.error('HomeScreen: Error loading recipients:', error.message);
         setRecipientsError(error.message || 'Failed to load recipients');
       } finally {
         setRecipientsLoading(false);
@@ -175,7 +183,6 @@ const HomeScreen = () => {
     };
     loadRecipients();
   }, [user.UserID]);
-
 
   const onRefresh = async () => {
     if (user?.access_token) {
@@ -224,20 +231,30 @@ const HomeScreen = () => {
     </TouchableOpacity>
   );
 
-  const TransactionItem = ({ item }) => (
-    <View style={styles.transaction}>
-      <Text style={[styles.transactionIcon, { color: item.type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
-        {item.type === 'credit' ? '↓' : '↑'}
-      </Text>
-      <View style={styles.transactionDetails}>
-        <Text style={styles.transactionDescription}>{item.description || 'Transaction'}</Text>
-        <Text style={styles.transactionDate}>{item.date || 'N/A'}</Text>
+  const TransactionItem = ({ item }) => {
+    const isDeposit = !!item.DepositID;
+    const type = isDeposit ? 'credit' : 'debit';
+    const transactionId = item.DepositID || item.TransferID;
+    
+    console.log('HomeScreen: Rendering transaction:', { transactionId, type, Description: item.Description, Amount: item.Amount });
+
+    return (
+      <View style={styles.transaction}>
+        <Text style={[styles.transactionIcon, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
+          {type === 'credit' ? '↓' : '↑'}
+        </Text>
+        <View style={styles.transactionDetails}>
+          <Text style={styles.transactionDescription}>{item.Description || (isDeposit ? 'Deposit' : 'Transfer')}</Text>
+          <Text style={styles.transactionDate}>
+            {new Date(item.Timestamp).toLocaleString()}
+          </Text>
+        </View>
+        <Text style={[styles.transactionAmount, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
+          {type === 'credit' ? '+' : '-'}${item.Amount.toFixed(2)}
+        </Text>
       </View>
-      <Text style={[styles.transactionAmount, { color: item.type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
-        {item.type === 'credit' ? '+' : '-'}${item.amount?.toFixed(2) || '0.00'}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   const RecipientItem = ({ item }) => (
     <TouchableOpacity
@@ -308,7 +325,7 @@ const HomeScreen = () => {
             style={styles.retryButton}
             onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })}
           >
-            {/* <Text opacity: { styles.retryButton}>Back to Login</Text> */}
+            <Text style={styles.retryButtonText}>Back to Login</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -428,7 +445,7 @@ const HomeScreen = () => {
               <FlatList
                 data={transactionsResponse}
                 renderItem={TransactionItem}
-                keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+                keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
                 scrollEnabled={false}
               />
             )}

@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useQuery } from 'react-query';
 import { AuthContext } from '../context/AuthContext';
-import { getTransactions, exportTransactions } from '../services/transactionService';
+import { getLastTenTransactions, exportTransactions } from '../services/transactionService';
 import { formatCurrency } from '../utils/helpers';
 import globalStyles from '../styles/globalStyles';
 
@@ -11,15 +11,17 @@ const TransactionsScreen = () => {
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
 
+
   const { data: transactions, isLoading, refetch } = useQuery(
     ['transactions', { page, per_page: perPage }],
-    () => getTransactions({ page, per_page: perPage }),
+    () => getLastTenTransactions(),
     { enabled: !!user }
   );
+  
 
   const handleExport = async () => {
     try {
-      const response = await exportTransactions({ page, per_page: perPage });
+      const response = await exportTransactions();
       // Handle CSV download (e.g., save to device or open)
       alert('Transactions exported successfully');
     } catch (error) {
@@ -27,20 +29,28 @@ const TransactionsScreen = () => {
     }
   };
 
-  const renderTransaction = ({ item }) => (
-    <View style={styles.transaction}>
-      <Text style={[styles.transactionIcon, { color: item.TransactionType === 'Deposit' ? '#2ecc71' : '#e74c3c' }]}>
-        {item.TransactionType === 'Deposit' ? '↓' : '↑'}
-      </Text>
-      <View style={styles.transactionDetails}>
-        <Text style={styles.transactionDescription}>{item.Description || item.TransactionType}</Text>
-        <Text style={styles.transactionDate}>{item.Timestamp}</Text>
+  const renderTransaction = ({ item }) => {
+    const isDeposit = !!item.DepositID;
+    const transactionType = isDeposit ? 'Deposit' : 'Transfer';
+    const transactionId = item.DepositID || item.TransferID;
+
+    return (
+      <View style={styles.transaction}>
+        <Text style={[styles.transactionIcon, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
+          {isDeposit ? '↓' : '↑'}
+        </Text>
+        <View style={styles.transactionDetails}>
+          <Text style={styles.transactionDescription}>{item.Description || transactionType}</Text>
+          <Text style={styles.transactionDate}>
+            {new Date(item.Timestamp).toLocaleString()}
+          </Text>
+        </View>
+        <Text style={[styles.transactionAmount, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
+          {isDeposit ? '+' : '-'}{formatCurrency(item.Amount)}
+        </Text>
       </View>
-      <Text style={[styles.transactionAmount, { color: item.TransactionType === 'Deposit' ? '#2ecc71' : '#e74c3c' }]}>
-        {item.TransactionType === 'Deposit' ? '+' : '-'}{formatCurrency(item.Amount)}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   if (!user) {
     return (
@@ -57,19 +67,18 @@ const TransactionsScreen = () => {
       </Text>
       {isLoading ? (
         <Text>Loading transactions...</Text>
+      ) : !transactions?.data?.items?.length ? (
+        <Text>No transactions available</Text>
       ) : (
         <>
           <FlatList
-            data={transactions?.data || []}
+            data={transactions?.data?.items || []}
             renderItem={renderTransaction}
-            keyExtractor={(item) => item.TransactionID.toString()}
+            keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
             onEndReached={() => transactions?.total_pages > page && setPage(page + 1)}
             onEndReachedThreshold={0.5}
           />
-          <TouchableOpacity
-            style={globalStyles.button}
-            onPress={handleExport}
-          >
+          <TouchableOpacity style={globalStyles.button} onPress={handleExport}>
             <Text style={globalStyles.buttonText}>Export Transactions</Text>
           </TouchableOpacity>
         </>
@@ -91,7 +100,21 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   transactionDetails: {
-    flex: 1
-  }})
+    flex: 1,
+  },
+  transactionDescription: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  transactionDate: {
+    fontSize: 14,
+    color: '#777',
+  },
+  transactionAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default TransactionsScreen;
