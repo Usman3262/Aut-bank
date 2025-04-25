@@ -4,8 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as recipientStorage from '../services/recipientStorage';
 import globalStyles from '../styles/globalStyles';
-import {getUserDetails} from '../services/userService'
+import {getUserDetails} from '../services/userService';
 const { COLORS } = globalStyles;
+
 
 const RecipientScreen = ({ navigation }) => {
   const [recipients, setRecipients] = useState([]);
@@ -15,35 +16,40 @@ const RecipientScreen = ({ navigation }) => {
   const [sortByNameAsc, setSortByNameAsc] = useState(true); // true for ascending, false for descending
 
   useEffect(() => {
-    const loadRecipients = async () => {
-      console.log('RecipientScreen: Loading recipients for UserID:', 6);
-      if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
-        console.error('RecipientScreen: recipientStorage module is invalid');
-        setRecipientsLoading(false);
-        setRecipientsError('Failed to load recipient storage module');
-        return;
-      }
-
+    const loadUserAndRecipients = async () => {
       try {
         setRecipientsLoading(true);
         setRecipientsError(null);
-        await recipientStorage.setUserId(6);
-        const loadedRecipients = await recipientStorage.getRecipients(6);
+  
+        const user = await getUserDetails();
+        const userId = user?.UserID;
+  
+        if (!userId) {
+          throw new Error('UserID not found in user details');
+        }
+  
+        console.log('RecipientScreen: Loading recipients for UserID:', userId);
+  
+        // Set user ID and generate mock recipients
+        await recipientStorage.setUserId(userId);
+        await recipientStorage.saveMockRecipients(userId);
+  
+        const loadedRecipients = await recipientStorage.getRecipients(userId);
         setRecipients(loadedRecipients);
-        console.log('RecipientScreen: Loaded', loadedRecipients.length, 'recipients');
-
-        const data = await AsyncStorage.getItem('@recipients:6');
+  
+        const data = await AsyncStorage.getItem(`@recipients:${userId}`);
         console.log('RecipientScreen: Verified stored data:', data ? JSON.parse(data).length : 0, 'recipients');
       } catch (error) {
-        console.error('RecipientScreen: Error loading recipients:', error.message);
+        console.error('RecipientScreen: Error loading user or recipients:', error.message);
         setRecipientsError(error.message || 'Failed to load recipients');
       } finally {
         setRecipientsLoading(false);
       }
     };
-    loadRecipients();
+  
+    loadUserAndRecipients();
   }, []);
-
+  
   // Filter and sort recipients based on search query and sort order
   const filteredRecipients = useMemo(() => {
     let result = [...recipients];
@@ -69,15 +75,21 @@ const RecipientScreen = ({ navigation }) => {
     return result;
   }, [recipients, searchQuery, sortByNameAsc]);
 
-  const response = typeof getUserDetails === 'function' ? getUserDetails() : getUserDetails;
-
-  const id = response?.data?.UserID;
-  if (id) {
-    console.log("UserID:", id);
-    recipientStorage.saveMockRecipients(id);
-  } else {
-    console.error("Failed to get UserID from getUserDetails response.");
-  }
+  (async () => {
+    try {
+      const response = await getUserDetails();
+      const id = response?.UserID;
+  
+      if (id) {
+        console.log("UserID:", id);
+        recipientStorage.saveMockRecipients(id);
+      } else {
+        console.error("Failed to get UserID from getUserDetails response.");
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  })();
   
 
   const renderRecipient = useCallback(

@@ -271,11 +271,11 @@ const SendScreen = ({ navigation }) => {
             )}
             <Text style={styles.findFavouritesHeading}>Find Your Favorites</Text>
             <View style={styles.searchBarContainer}>
-              <Icon name="search" size={24} color={COLORS.placeholder} style={styles.searchIcon} />
+              <Icon name="search" size={24} color={COLORS.gray} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Find Favorites"
-                placeholderTextColor={COLORS.placeholder}
+                placeholderTextColor={COLORS.grey}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -370,6 +370,7 @@ const SendScreen = ({ navigation }) => {
               placeholder={`Enter recipient ${recipientType}`}
               value={manualRecipient}
               onChangeText={setManualRecipient}
+              placeholderTextColor={COLORS.black}
               autoCapitalize={recipientType === 'email' ? 'none' : 'words'}
             />
             <TextInput
@@ -377,6 +378,7 @@ const SendScreen = ({ navigation }) => {
               placeholder="Description (optional)"
               value={description}
               onChangeText={setDescription}
+              placeholderTextColor={COLORS.black}
             />
             {errorMessage && screenState === 'recipientInput' && (
               <Text style={styles.errorText}>{errorMessage}</Text>
@@ -493,7 +495,7 @@ const styles = StyleSheet.create({
   },
   sendMoneySubtext: {
     fontSize: 16,
-    color: COLORS.placeholder,
+    color: COLORS.grey,
     marginBottom: 20,
   },
   sendButton: {
@@ -578,14 +580,14 @@ const styles = StyleSheet.create({
   },
   recipientSubText: {
     fontSize: 14,
-    color: COLORS.placeholder,
+    color: COLORS.grey,
   },
   navIcon: {
     marginLeft: 12,
   },
   separator: {
     height: 1,
-    backgroundColor: COLORS.gray,
+    backgroundColor: COLORS.white,
     marginVertical: 4,
   },
   loadingText: {

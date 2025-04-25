@@ -1,3 +1,231 @@
+c:/AutFinanceBank/src/Assets/mailbody.js
+<DOCUMENT>
+function generateOtpEmail(date, reason, otp) {
+    const formattedDate = new Date(date).toLocaleString(); // Format the date
+    
+    const htmlTemplate = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>OTP</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body
+        style="
+          margin: 0;
+          font-family: 'Poppins', sans-serif;
+          background: #ffffff;
+          font-size: 14px;
+        "
+      >
+        <div
+          style="
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 45px 30px 60px;
+            background: #f4f7ff;
+            background-image: url(https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661497957196_595865/email-template-background-banner);
+            background-repeat: no-repeat;
+            background-size: 800px 452px;
+            background-position: top center;
+            font-size: 14px;
+            color: #434343;
+          "
+        >
+          <header>
+            <table style="width: 100%;">
+              <tbody>
+                <tr style="height: 0;">
+                  <td>
+                    <img
+                      alt="AUT Bank Logo"
+                      src="https://raw.githubusercontent.com/ahad324/BankManagementSystemCpp/main/Logo.jpeg"
+                      height="100px"
+                    />
+                  </td>
+                  <td style="text-align: right;">
+                    <span
+                      style="font-size: 16px; line-height: 30px; color: #ffffff;"
+                      >${formattedDate}</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </header>
+  
+          <main>
+            <div
+              style="
+                margin: 0;
+                margin-top: 70px;
+                padding: 92px 30px 115px;
+                background: #ffffff;
+                border-radius: 30px;
+                text-align: center;
+                box-shadow:0 0 20px rgba(0,0,0,0.5);
+              "
+            >
+              <div style="width: 100%; max-width: 489px; margin: 0 auto;">
+                <h1
+                  style="
+                    margin: 0;
+                    font-size: 24px;
+                    font-weight: 500;
+                    color: #1f1f1f;
+                  "
+                >
+                  Your OTP
+                </h1>
+                <p
+                  style="
+                    margin: 0;
+                    margin-top: 17px;
+                    font-size: 16px;
+                    font-weight: 500;
+                  "
+                >
+                  Hey Welcome !,
+                </p>
+                <p
+                  style="
+                    margin: 0;
+                    margin-top: 17px;
+                    font-weight: 500;
+                    letter-spacing: 0.56px;
+                  "
+                >
+                  Thank you for choosing AUT Finance Bank. Use the following OTP
+                  to complete the procedure of ${reason}. OTP is
+                  valid for
+                  <span style="font-weight: 600; color: #1f1f1f;">5 minutes</span>.<br />
+                  Do not share this code with others.
+                </p>
+                <p
+                  style="
+                    margin: 0;
+                    margin-top: 60px;
+                    font-size: 40px;
+                    font-weight: 600;
+                    letter-spacing: 25px;
+                    color: #ba3d4f;
+                  "
+                >
+                  ${otp}
+                </p>
+              </div>
+            </div>
+  
+            <p
+              style="
+                max-width: 400px;
+                margin: 0 auto;
+                margin-top: 90px;
+                text-align: center;
+                font-weight: 500;
+                color: #8c8c8c;
+              "
+            >
+              Need help? Ask at
+              <a
+                href="mailto:autfinance.bank@gmail.com"
+                style="color: #499fb6; text-decoration: none;"
+                >autfinance.bank@gmail.com</a
+              >
+              or visit our
+              <a
+                href="https://bmscpp.netlify.app/"
+                target="_blank"
+                style="color: #499fb6; text-decoration: none;"
+                >Help Center</a
+              >
+            </p>
+          </main>
+  
+          <footer
+            style="
+              width: 100%;
+              max-width: 490px;
+              margin: 20px auto 0;
+              text-align: center;
+              border-top: 1px solid #e6ebf1;
+            "
+          >
+            <p
+              style="
+                margin: 0;
+                margin-top: 40px;
+                font-size: 16px;
+                font-weight: 600;
+                color: #434343;
+              "
+            >
+              AUT Finance Bank
+            </p>
+            <p style="margin: 0; margin-top: 8px; color: #434343;">
+              Address 540, Lahore, Punjab.
+            </p>
+            <div style="margin: 0; margin-top: 16px;">
+              <a href="" target="_blank" style="display: inline-block;">
+                <img
+                  width="36px"
+                  alt="Facebook"
+                  src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661502815169_682499/email-template-icon-facebook"
+                />
+              </a>
+              <a
+                href=""
+                target="_blank"
+                style="display: inline-block; margin-left: 8px;"
+              >
+                <img
+                  width="36px"
+                  alt="Instagram"
+                  src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661504218208_684135/email-template-icon-instagram"
+                />
+              </a>
+              <a
+                href=""
+                target="_blank"
+                style="display: inline-block; margin-left: 8px;"
+              >
+                <img
+                  width="36px"
+                  alt="Twitter"
+                  src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661503043040_372004/email-template-icon-twitter"
+                />
+              </a>
+              <a
+                href=""
+                target="_blank"
+                style="display: inline-block; margin-left: 8px;"
+              >
+                <img
+                  width="36px"
+                  alt="Youtube"
+                  src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661503195931_210869/email-template-icon-youtube"
+                />
+              </a>
+            </div>
+            <p style="margin: 0; margin-top: 16px; color: #434343;">
+              Copyright © 2024 Company. All rights reserved.
+            </p>
+          </footer>
+        </div>
+      </body>
+    </html>
+    `;
+    return htmlTemplate;
+  }
+  export default generateOtpEmail;
+</DOCUMENT>
+
 c:/AutFinanceBank/src/context/AuthContext.js
 <DOCUMENT>
 import React, { createContext, useState, useEffect } from 'react';
@@ -15,19 +243,20 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/v1/users/login', { login_id: loginId, Password: password });
       console.log('AuthContext: Login response:', response.data);
       const { success, message, data } = response.data;
-      if (!success) {
-        return { success: false, message };
+      if (!success || !data) {
+        return { success: false, message: message || 'Invalid response from server' };
       }
 
       const { access_token, refresh_token, ...userData } = data;
+      if (!access_token || !userData.UserID) {
+        return { success: false, message: 'Invalid user data received' };
+      }
       console.log('AuthContext: User data:', userData);
 
-      // Save user data and tokens
       await AsyncStorage.setItem('accessToken', access_token);
       await AsyncStorage.setItem('refreshToken', refresh_token);
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
 
-      // Set user state
       const userWithToken = { ...userData, access_token };
       setUser(userWithToken);
 
@@ -59,10 +288,20 @@ export const AuthProvider = ({ children }) => {
         console.log('AuthContext: AsyncStorage contents:', { userData, accessToken });
 
         if (userData && accessToken) {
-          const parsedUser = JSON.parse(userData);
-          parsedUser.access_token = accessToken;
-          console.log('AuthContext: Parsed user data:', Object.keys(parsedUser));
-          setUser(parsedUser);
+          let parsedUser;
+          try {
+            parsedUser = JSON.parse(userData);
+          } catch (error) {
+            console.error('AuthContext: Failed to parse userData:', error);
+            await AsyncStorage.removeItem('userData');
+            setIsLoading(false);
+            return;
+          }
+          if (parsedUser.UserID) {
+            parsedUser.access_token = accessToken;
+            console.log('AuthContext: Parsed user data:', Object.keys(parsedUser));
+            setUser(parsedUser);
+          }
         }
       } catch (error) {
         console.error('AuthContext: Initialization error:', error);
@@ -762,7 +1001,7 @@ export default BillsScreen;
 
 c:/AutFinanceBank/src/screens/HomeScreen.js
 <DOCUMENT>
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -772,14 +1011,19 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
-  Image,
   ActivityIndicator,
+  RefreshControl,
+  Animated,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useQuery } from 'react-query';
 import { AuthContext } from '../context/AuthContext';
-import api from '../services/api';
+import { getUserDetails, getUserTransactions } from '../services/userService';
+import initializeWebSocket from '../services/socket';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
+import * as recipientStorage from '../services/recipientStorage';
 
 const { height } = Dimensions.get('window');
 
@@ -787,42 +1031,48 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = useContext(AuthContext);
+  const [balance, setBalance] = useState(null);
+  const [ws, setWs] = useState(null);
+  const [recipients, setRecipients] = useState([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(true);
+  const [recipientsError, setRecipientsError] = useState(null);
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   console.log('HomeScreen route.params:', route.params);
   console.log('HomeScreen user:', user);
   console.log('HomeScreen user keys:', user ? Object.keys(user) : 'undefined');
+  console.log('HomeScreen: recipientStorage module:', recipientStorage);
 
-  const { data: userData, isLoading: userLoading, error: userError } = useQuery(
+  const { data: userData, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery(
     ['user', user?.UserID],
     async () => {
       if (!user?.access_token) {
         throw new Error('No access token available');
       }
-      const response = await api.get('/api/v1/users/me');
-      console.log('HomeScreen: /me response:', response.data);
-      return response.data;
+      const data = await getUserDetails();
+      console.log('HomeScreen: getUserDetails response:', data);
+      return data;
     },
     {
       enabled: !!user?.access_token,
       retry: false,
+      onSuccess: (data) => {
+        animateBalance();
+        setBalance(data.Balance);
+      },
     }
   );
 
-  const { data: transactionsData, isLoading: transactionsLoading } = useQuery(
+  const { data: transactionsResponse, isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery(
     ['transactions', user?.UserID],
     async () => {
       if (!user?.access_token) {
         throw new Error('No access token available');
       }
-      const response = await api.get('/api/v1/users/transactions');
-      console.log('HomeScreen: /transactions response:', response.data);
-      return response.data.map((t) => ({
-        id: `${t.type}-${t.id}`,
-        type: t.type,
-        description: t.type === 'credit' ? `From ${t.senderName}` : `To ${t.recipientName}`,
-        amount: t.amount,
-        date: t.date,
-      }));
+      const response = await getUserTransactions({ per_page: 10, sort_by: 'Timestamp', order: 'desc' });
+      console.log('HomeScreen: getUserTransactions response:', response);
+      return response.data.items; // Access items directly
     },
     {
       enabled: !!user?.access_token,
@@ -830,47 +1080,212 @@ const HomeScreen = () => {
     }
   );
 
-  useEffect(() => {
-    console.log('HomeScreen navigation focus, user:', user ? Object.keys(user) : 'undefined');
-    if (!user) {
-      console.warn('HomeScreen no user in AuthContext');
-    }
-  }, [user]);
+  const animateBalance = () => {
+    console.log('HomeScreen: Triggering balance animation');
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(opacityAnim, {
+          toValue: 0.5,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.05,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  };
 
-  const BalanceCard = () => (
-    <View style={styles.balanceCard}>
-      <Text style={styles.balanceTitle}>Balance</Text>
-      <View style={styles.balanceRow}>
-        <Text style={styles.balanceAmount}>
-          {userLoading ? '...' : `$${(userData?.balance || 0).toFixed(2)}`}
-        </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('QRCode')}>
-          <Icon name="qr-code" size={24} color="#3498db" />
-        </TouchableOpacity>
+  useEffect(() => {
+    let webSocket;
+    const setupWebSocket = async () => {
+      webSocket = await initializeWebSocket(user?.access_token);
+      if (webSocket) {
+        setWs(webSocket);
+        webSocket.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            console.log('HomeScreen: WebSocket message:', JSON.stringify(message, null, 2));
+            if (message.type === 'balance_update' && message.data?.Balance != null) {
+              console.log('HomeScreen: Updating balance from balance_update:', message.data.Balance);
+              animateBalance();
+              setBalance(message.data.Balance);
+            }
+            if (message.type === 'deposit_completed' && message.data?.balance != null) {
+              console.log('HomeScreen: Updating balance from deposit_completed:', message.data.balance);
+              animateBalance();
+              setBalance(message.data.balance);
+            }
+          } catch (error) {
+            console.error('HomeScreen: WebSocket message parse error:', error, 'Raw data:', event.data);
+          }
+        };
+      }
+    };
+
+    if (user?.access_token) {
+      setupWebSocket();
+    }
+
+    return () => {
+      if (webSocket) {
+        webSocket.close();
+        console.log('HomeScreen: WebSocket closed');
+      }
+    };
+  }, [user?.access_token]);
+
+   
+  
+    const id = user?.UserID;
+    if (id) {
+      console.log("UserID:", id);
+      recipientStorage.saveMockRecipients(id);
+    } else {
+      console.error("Failed to get UserID from getUserDetails response.");
+    }
+    
+
+  useEffect(() => {
+    const loadRecipients = async () => {
+      console.log('HomeScreen: Loading recipients for UserID:', user.UserID);
+      if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
+        console.error('HomeScreen: recipientStorage module is invalid');
+        setRecipientsLoading(false);
+        setRecipientsError('Failed to load recipient storage module');
+        return;
+      }
+
+      try {
+        setRecipientsLoading(true);
+        setRecipientsError(null);
+        await recipientStorage.setUserId(user.UserID);
+        const loadedRecipients = await recipientStorage.getRecipients(user.UserID);
+        setRecipients(loadedRecipients);
+        console.log('HomeScreen: Loaded', loadedRecipients.length, 'recipients');
+      } catch (error) {
+        console.error('HomeScreen: Error loading recipients:', error.message);
+        setRecipientsError(error.message || 'Failed to load recipients');
+      } finally {
+        setRecipientsLoading(false);
+      }
+    };
+    loadRecipients();
+  }, [user.UserID]);
+
+  const onRefresh = async () => {
+    if (user?.access_token) {
+      await Promise.all([refetchUser(), refetchTransactions()]);
+      if (user?.UserID && recipientStorage.getRecipients) {
+        console.log('HomeScreen: Refreshing recipients for UserID:', user.UserID);
+        try {
+          const loadedRecipients = await recipientStorage.getRecipients(user.UserID);
+          setRecipients(loadedRecipients);
+        } catch (error) {
+          setRecipientsError(error.message || 'Failed to refresh recipients');
+        }
+      }
+    }
+  };
+
+  const BalanceCard = () => {
+    console.log('BalanceCard: Rendering with balance:', balance);
+    return (
+      <View style={styles.balanceCard}>
+        <Text style={styles.balanceTitle}>Balance</Text>
+        <View style={styles.balanceRow}>
+          <Animated.Text
+            style={[
+              styles.balanceAmount,
+              {
+                opacity: opacityAnim,
+                transform: [{ scale: scaleAnim }],
+              },
+            ]}
+          >
+            {balance != null ? `$${balance.toFixed(2)}` : '...'}
+          </Animated.Text>
+          <TouchableOpacity onPress={() => navigation.navigate('QRCode')}>
+            <Icon name="qr-code" size={24} color={homeScreenTheme.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const ServiceItem = ({ title, icon, screen }) => (
     <TouchableOpacity style={styles.serviceItem} onPress={() => navigation.navigate(screen)}>
-      <Icon name={icon} size={24} color="#3498db" />
+      <Icon name={icon} size={24} color={homeScreenTheme.primary} />
       <Text style={styles.serviceText}>{title}</Text>
     </TouchableOpacity>
   );
 
-  const TransactionItem = ({ item }) => (
-    <View style={styles.transaction}>
-      <Text style={[styles.transactionIcon, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
-        {item.type === 'credit' ? '↓' : '↑'}
-      </Text>
-      <View style={styles.transactionDetails}>
-        <Text style={styles.transactionDescription}>{item.description}</Text>
-        <Text style={styles.transactionDate}>{item.date}</Text>
+  const TransactionItem = ({ item }) => {
+    const isDeposit = !!item.DepositID;
+    const type = isDeposit ? 'credit' : 'debit';
+    const transactionId = item.DepositID || item.TransferID;
+    
+    console.log('HomeScreen: Rendering transaction:', { transactionId, type, Description: item.Description, Amount: item.Amount });
+
+    return (
+      <View style={styles.transaction}>
+        <Text style={[styles.transactionIcon, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
+          {type === 'credit' ? '↓' : '↑'}
+        </Text>
+        <View style={styles.transactionDetails}>
+          <Text style={styles.transactionDescription}>{item.Description || (isDeposit ? 'Deposit' : 'Transfer')}</Text>
+          <Text style={styles.transactionDate}>
+            {new Date(item.Timestamp).toLocaleString()}
+          </Text>
+        </View>
+        <Text style={[styles.transactionAmount, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
+          {type === 'credit' ? '+' : '-'}${item.Amount.toFixed(2)}
+        </Text>
       </View>
-      <Text style={[styles.transactionAmount, { color: item.type === 'credit' ? '#2ecc71' : '#e74c3c' }]}>
-        {item.type === 'credit' ? '+' : '-'}${item.amount.toFixed(2)}
+    );
+  };
+
+  const RecipientItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.recipientItem}
+      onPress={() => {
+        console.log('HomeScreen: Selected recipient:', item);
+      }}
+    >
+      <View style={styles.recipientAvatar}>
+        {item.image ? (
+          <Image
+            source={{ uri: item.image }}
+            style={styles.recipientImage}
+            onError={(e) => {
+              console.error('HomeScreen: Failed to load recipient image:', item.image, e.nativeEvent.error);
+            }}
+          />
+        ) : (
+          <Text style={styles.recipientAvatarText}>{item.name?.[0]?.toUpperCase() || 'R'}</Text>
+        )}
+      </View>
+      <Text style={styles.recipientName} numberOfLines={1}>
+        {item.name || 'Unknown'}
       </Text>
-    </View>
+      <Text style={styles.recipientUsername} numberOfLines={1}>
+        @{item.username || 'N/A'}
+      </Text>
+    </TouchableOpacity>
   );
 
   if (!user) {
@@ -889,10 +1304,10 @@ const HomeScreen = () => {
     );
   }
 
-  if (userLoading) {
+  if (userLoading && balance == null) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#3498db" style={{ flex: 1 }} />
+        <ActivityIndicator size="large" color={homeScreenTheme.primary} style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
@@ -901,12 +1316,19 @@ const HomeScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.blueSection}>
-          <Text style={styles.username}>Error loading user data</Text>
+          <Text style={styles.username}>Error loading data</Text>
+          <Text style={styles.errorText}>{userError.message || 'Failed to load data'}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetchUser()}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })}
           >
-            <Text style={styles.retryButtonText}>Retry Login</Text>
+            <Text style={styles.retryButtonText}>Back to Login</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -915,92 +1337,122 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.blueSection}>
-        <View style={styles.header}>
-          <View style={styles.userContainer}>
-            <View style={styles.userAvatar}>
-              {userData?.profileImage ? (
-                <Image
-                  source={{ uri: userData.profileImage }}
-                  style={styles.userAvatarImage}
-                  resizeMode="cover"
-                  onError={(e) => console.log('HomeScreen image error:', e.nativeEvent.error)}
-                />
-              ) : (
-                <Image
-                  source={require('../Assets/images/users/user2.jpg')}
-                  style={styles.userAvatarImage}
-                  resizeMode="cover"
-                />
-              )}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={userLoading || transactionsLoading} onRefresh={onRefresh} />}
+      >
+        <View style={styles.blueSection}>
+          <View style={styles.header}>
+            <View style={styles.userContainer}>
+              <View style={styles.userAvatar}>
+                <Text style={styles.avatarText}>{userData?.FirstName?.[0]?.toUpperCase() || 'U'}</Text>
+              </View>
+              <View style={styles.userTextContainer}>
+                <Text style={styles.username}>{userData?.FirstName || 'User'}</Text>
+                <Text style={styles.greeting}>Let's save your money</Text>
+              </View>
             </View>
-            <View style={styles.userTextContainer}>
-              <Text style={styles.username}>{userData?.Username || 'User'}</Text>
-              <Text style={styles.greeting}>Let's save your money</Text>
-            </View>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="notifications" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-        <BalanceCard />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.whiteSection}>
-        <View style={styles.userDataContainer}>
-          <Text style={styles.sectionTitle}>User Details</Text>
-          <Text style={styles.userDataText}>Username: {userData?.Username || 'N/A'}</Text>
-          <Text style={styles.userDataText}>Email: {userData?.Email || 'N/A'}</Text>
-          <Text style={styles.userDataText}>User ID: {userData?.UserID || 'N/A'}</Text>
-          <Text style={styles.userDataText}>Account Type: {userData?.AccountType || 'N/A'}</Text>
-        </View>
-
-        <View style={styles.servicesContainer}>
-          <Text style={styles.sectionTitle}>Services</Text>
-          <View style={styles.servicesRow}>
-            <ServiceItem title="Send" icon="send" screen="Send" />
-            <ServiceItem title="Deposit" icon="add" screen="Deposit" />
-            <ServiceItem title="Loan" icon="account-balance" screen="Loan" />
-          </View>
-          <View style={styles.servicesRow}>
-            <ServiceItem title="Withdraw" icon="atm" screen="Withdraw" />
-            <ServiceItem title="Cards" icon="credit-card" screen="Cards" />
-            <ServiceItem title="Transactions" icon="history" screen="Transactions" />
-          </View>
-        </View>
-
-        <View style={styles.recipientsContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recipients</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('RecipientScreen')}>
-              <Text style={styles.seeAllText}>See All</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+              <Icon name="notifications" size={24} color={homeScreenTheme.notificationIcon} />
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={[]}
-            horizontal
-            renderItem={() => null}
-            keyExtractor={() => ''}
-          />
+          <BalanceCard />
         </View>
 
-        <View style={styles.transactionsContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Transaction History</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
+        <View style={styles.whiteSection}>
+          <View style={styles.servicesContainer}>
+            <Text style={styles.sectionTitle}>Services</Text>
+            <View style={styles.servicesRow}>
+              <ServiceItem title="Send" icon="send" screen="Send" />
+              <ServiceItem title="Deposit" icon="add" screen="Deposit" />
+              <ServiceItem title="Loan" icon="account-balance" screen="Loan" />
+            </View>
+            <View style={styles.servicesRow}>
+              <ServiceItem title="Withdraw" icon="atm" screen="Withdraw" />
+              <ServiceItem title="Cards" icon="credit-card" screen="Cards" />
+              <ServiceItem title="Transactions" icon="history" screen="Transactions" />
+            </View>
           </View>
-          {transactionsLoading ? (
-            <Text style={styles.transactionDescription}>Loading transactions...</Text>
-          ) : (
-            <FlatList
-              data={transactionsData || []}
-              renderItem={TransactionItem}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-            />
-          )}
+
+          <View style={styles.recipientsContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recipients</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('RecipientScreen')}>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            {recipientsLoading ? (
+              <ActivityIndicator size="small" color={homeScreenTheme.primary} />
+            ) : recipientsError ? (
+              <View>
+                <Text style={styles.errorText}>{recipientsError}</Text>
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
+                      setRecipientsError('Failed to load recipient storage module');
+                      return;
+                    }
+                    if (user?.UserID) {
+                      console.log('HomeScreen: Retrying recipients load for UserID:', user.UserID);
+                      try {
+                        setRecipientsLoading(true);
+                        setRecipientsError(null);
+                        await recipientStorage.setUserId(user.UserID);
+                        const loadedRecipients = await recipientStorage.getRecipients(user.UserID);
+                        setRecipients(loadedRecipients);
+                      } catch (error) {
+                        setRecipientsError(error.message || 'Failed to load recipients');
+                      } finally {
+                        setRecipientsLoading(false);
+                      }
+                    } else {
+                      setRecipientsError('User not authenticated');
+                    }
+                  }}
+                >
+                  <Text style={styles.seeAllText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : recipients.length === 0 ? (
+              <Text style={styles.transactionDescription}>No recipients available</Text>
+            ) : (
+              <FlatList
+                data={recipients}
+                horizontal
+                renderItem={RecipientItem}
+                keyExtractor={(item) => item.recipientId.toString()}
+                showsHorizontalScrollIndicator={false}
+              />
+            )}
+          </View>
+
+          <View style={styles.transactionsContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Transaction History</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            {transactionsLoading ? (
+              <ActivityIndicator size="small" color={homeScreenTheme.primary} />
+            ) : transactionsError ? (
+              <View>
+                <Text style={styles.transactionDescription}>Failed to load transactions: {transactionsError.message}</Text>
+                <TouchableOpacity onPress={() => refetchTransactions()}>
+                  <Text style={styles.seeAllText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : !transactionsResponse || transactionsResponse.length === 0 ? (
+              <Text style={styles.transactionDescription}>No transactions available</Text>
+            ) : (
+              <FlatList
+                data={transactionsResponse}
+                renderItem={TransactionItem}
+                keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
+                scrollEnabled={false}
+              />
+            )}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -1008,14 +1460,14 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: homeScreenTheme.background },
+  scrollContent: { flexGrow: 1, backgroundColor: homeScreenTheme.background },
   blueSection: {
     height: height * 0.2,
-    backgroundColor: '#3498db',
+    backgroundColor: homeScreenTheme.primary,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     padding: 16,
-    zIndex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -1030,22 +1482,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: homeScreenTheme.white,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    overflow: 'hidden',
   },
-  userAvatarImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  avatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
   },
   userTextContainer: { flexDirection: 'column' },
-  username: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
-  greeting: { fontSize: 14, color: '#fff', marginTop: 4 },
+  username: { fontSize: 18, fontWeight: 'bold', color: homeScreenTheme.white },
+  greeting: { fontSize: 14, color: homeScreenTheme.white, marginTop: 4 },
   balanceCard: {
-    backgroundColor: '#fff',
+    backgroundColor: homeScreenTheme.white,
     borderRadius: 12,
     padding: 16,
     elevation: 4,
@@ -1055,31 +1506,29 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 2,
   },
-  balanceTitle: { fontSize: 14, color: '#7f8c8d' },
+  balanceTitle: { fontSize: 14, color: homeScreenTheme.secondary },
   balanceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  balanceAmount: { fontSize: 26, fontWeight: 'bold', color: '#2c3e50', marginVertical: 4 },
+  balanceAmount: { fontSize: 26, fontWeight: 'bold', color: homeScreenTheme.black, marginVertical: 4 },
   whiteSection: {
-    backgroundColor: '#fff',
     paddingTop: height * 0.08,
+    backgroundColor: homeScreenTheme.background,
   },
-  userDataContainer: { paddingHorizontal: 16, marginBottom: 16 },
-  userDataText: { fontSize: 14, color: '#2c3e50', marginVertical: 4 },
   servicesContainer: { paddingHorizontal: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: homeScreenTheme.black, marginBottom: 12 },
   servicesRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   serviceItem: {
     flex: 1,
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: homeScreenTheme.serviceBackground,
     borderRadius: 8,
     marginHorizontal: 4,
   },
-  serviceText: { fontSize: 12, color: '#2c3e50', marginTop: 4 },
+  serviceText: { fontSize: 12, color: homeScreenTheme.black, marginTop: 4 },
   recipientsContainer: { padding: 16 },
   sectionHeader: {
     flexDirection: 'row',
@@ -1089,27 +1538,68 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: '#3498db',
+    color: homeScreenTheme.link,
     fontWeight: '500',
   },
+  recipientItem: {
+    alignItems: 'center',
+    marginRight: 16,
+    width: 80,
+  },
+  recipientAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: homeScreenTheme.serviceBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  recipientImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  recipientAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+  },
+  recipientName: {
+    fontSize: 12,
+    color: homeScreenTheme.black,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  recipientUsername: {
+    fontSize: 10,
+    color: homeScreenTheme.secondary,
+    textAlign: 'center',
+  },
   retryButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: homeScreenTheme.retryButton,
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
     alignItems: 'center',
   },
   retryButtonText: {
-    color: '#fff',
+    color: homeScreenTheme.retryButtonText,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    marginVertical: 8,
+    textAlign: 'center',
   },
   transactionsContainer: { padding: 16 },
   transaction: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   transactionIcon: { fontSize: 20, marginRight: 8 },
   transactionDetails: { flex: 1 },
-  transactionDescription: { fontSize: 14, color: '#2c3e50' },
-  transactionDate: { fontSize: 10, color: '#7f8c8d' },
+  transactionDescription: { fontSize: 14, color: homeScreenTheme.black },
+  transactionDate: { fontSize: 10, color: homeScreenTheme.secondary },
   transactionAmount: { fontSize: 14, fontWeight: 'bold' },
 });
 
@@ -1747,15 +2237,328 @@ export default QRCodeScreen;
 
 c:/AutFinanceBank/src/screens/RecipientScreen.js
 <DOCUMENT>
-// screens/TransactionsScreen.js
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as recipientStorage from '../services/recipientStorage';
+import globalStyles from '../styles/globalStyles';
+import {getUserDetails} from '../services/userService'
+const { COLORS } = globalStyles;
 
-const  RecipientScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text> Recipient Screen</Text>
-  </View>
-);
+const RecipientScreen = ({ navigation }) => {
+  const [recipients, setRecipients] = useState([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [recipientsError, setRecipientsError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortByNameAsc, setSortByNameAsc] = useState(true); // true for ascending, false for descending
+
+  useEffect(() => {
+    const loadRecipients = async () => {
+      console.log('RecipientScreen: Loading recipients for UserID:', 6);
+      if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
+        console.error('RecipientScreen: recipientStorage module is invalid');
+        setRecipientsLoading(false);
+        setRecipientsError('Failed to load recipient storage module');
+        return;
+      }
+
+      try {
+        setRecipientsLoading(true);
+        setRecipientsError(null);
+        await recipientStorage.setUserId(6);
+        const loadedRecipients = await recipientStorage.getRecipients(6);
+        setRecipients(loadedRecipients);
+        console.log('RecipientScreen: Loaded', loadedRecipients.length, 'recipients');
+
+        const data = await AsyncStorage.getItem('@recipients:6');
+        console.log('RecipientScreen: Verified stored data:', data ? JSON.parse(data).length : 0, 'recipients');
+      } catch (error) {
+        console.error('RecipientScreen: Error loading recipients:', error.message);
+        setRecipientsError(error.message || 'Failed to load recipients');
+      } finally {
+        setRecipientsLoading(false);
+      }
+    };
+    loadRecipients();
+  }, []);
+
+  // Filter and sort recipients based on search query and sort order
+  const filteredRecipients = useMemo(() => {
+    let result = [...recipients];
+
+    // Filter by search query
+    if (searchQuery) {
+      result = result.filter((item) =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort by name
+    result.sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      if (sortByNameAsc) {
+        return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+      } else {
+        return nameA > nameB ? -1 : nameA < nameB ? 1 : 0;
+      }
+    });
+
+    return result;
+  }, [recipients, searchQuery, sortByNameAsc]);
+
+  const response = typeof getUserDetails === 'function' ? getUserDetails() : getUserDetails;
+
+  const id = response?.data?.UserID;
+  if (id) {
+    console.log("UserID:", id);
+    recipientStorage.saveMockRecipients(id);
+  } else {
+    console.error("Failed to get UserID from getUserDetails response.");
+  }
+  
+
+  const renderRecipient = useCallback(
+    ({ item }) => {
+      return (
+        <TouchableOpacity
+          style={styles.recipientItem}
+          onPress={() => navigation.navigate('SendScreen', { recipient: item })}
+        >
+          <Image
+            source={{ uri: item.image }}
+            style={styles.recipientImage}
+            onError={(error) => console.error(`RecipientScreen: Error loading image for ${item.name}:`, error.nativeEvent.error)}
+          />
+          <View style={styles.recipientTextContainer}>
+            <Text style={styles.recipientText}>{item.name}</Text>
+            <Text style={styles.recipientSubText}>{item.email || item.cnic || 'No contact info'}</Text>
+          </View>
+          <Icon name="send" size={24} color={COLORS.secondary} style={styles.navIcon} />
+        </TouchableOpacity>
+      );
+    },
+    [navigation]
+  );
+
+  const renderSeparator = () => <View style={styles.separator} />;
+
+  const handleFilterPress = () => {
+    setSortByNameAsc((prev) => !prev);
+    console.log('Filter icon pressed, sorting:', sortByNameAsc ? 'Descending' : 'Ascending');
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Send Money Section */}
+      {/* <View style={styles.sendMoneyContainer}>
+        <Text style={styles.sendMoneyHeading}>Send Money Now</Text>
+        <Text style={styles.sendMoneySubtext}>Money Transfer to your Favourites</Text>
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={() => navigation.navigate('SendScreen')}
+        >
+          <Text style={styles.sendButtonText}>SEND NOW</Text>
+        </TouchableOpacity>
+      </View> */}
+
+      {/* Find Favourites Section */}
+      <Text style={styles.findFavouritesHeading}>Find your Favourites</Text>
+      <View style={styles.searchBarContainer}>
+        <Icon name="search" size={24} color={COLORS.placeholder} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Find Favourites"
+          placeholderTextColor={COLORS.placeholder}
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text)}
+        />
+        <TouchableOpacity
+          style={styles.filterIconContainer}
+          onPress={handleFilterPress}
+        >
+          <Icon
+            name="sort-by-alpha"
+            size={24}
+            color={COLORS.text}
+            style={{ transform: [{ rotate: sortByNameAsc ? '0deg' : '180deg' }] }} // Rotate icon to indicate sort direction
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Recipients List */}
+      {recipientsLoading && <Text style={styles.loadingText}>Loading recipients...</Text>}
+      {recipientsError && <Text style={styles.errorText}>Error: {recipientsError}</Text>}
+      {filteredRecipients.length > 0 ? (
+        <FlatList
+          data={filteredRecipients}
+          renderItem={renderRecipient}
+          keyExtractor={(item) => `recipient-${item.recipientId}`}
+          style={styles.list}
+          ItemSeparatorComponent={renderSeparator}
+          initialNumToRender={15}
+          maxToRenderPerBatch={15}
+          getItemLayout={(data, index) => ({
+            length: 70,
+            offset: 70 * index,
+            index,
+          })}
+        />
+      ) : (
+        !recipientsLoading && !recipientsError && <Text style={styles.noRecipientsText}>No recipients found.</Text>
+      )}
+
+      {/* Debug Button */}
+      <TouchableOpacity
+        style={styles.verifyButton}
+        onPress={async () => {
+          const data = await AsyncStorage.getItem('@recipients:6');
+          console.log('RecipientScreen: Manual verification:', data ? JSON.parse(data).length : 0, 'recipients');
+        }}
+      >
+        <Text style={styles.verifyButtonText}>Verify Storage</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  sendMoneyContainer: {
+    marginBottom: 20,
+  },
+  sendMoneyHeading: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  sendMoneySubtext: {
+    fontSize: 16,
+    color: COLORS.placeholder,
+    marginBottom: 20,
+  },
+  sendButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    marginHorizontal: '5%',
+    borderRadius: 25,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  sendButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  findFavouritesHeading: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.text,
+    paddingVertical: 8,
+  },
+  filterIconContainer: {
+    padding: 8,
+  },
+  list: {
+    flex: 1,
+    width: '100%',
+  },
+  recipientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  recipientImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  recipientTextContainer: {
+    flex: 1,
+  },
+  recipientText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  recipientSubText: {
+    fontSize: 14,
+    color: COLORS.placeholder,
+  },
+  navIcon: {
+    marginLeft: 12,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: COLORS.gray,
+    marginVertical: 4,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLORS.danger,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  noRecipientsText: {
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  verifyButton: {
+    backgroundColor: COLORS.secondary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  verifyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+});
 
 export default RecipientScreen;
 </DOCUMENT>
@@ -1777,44 +2580,230 @@ export default ScanQRScreen;
 
 c:/AutFinanceBank/src/screens/SendScreen.js
 <DOCUMENT>
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
+import React, { useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import { useMutation } from 'react-query';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
+import * as recipientStorage from '../services/recipientStorage';
 import { createTransfer } from '../services/transferService';
-import { TransferCreateSchema } from '../utils/validators';
 import globalStyles from '../styles/globalStyles';
+
+const { COLORS } = globalStyles;
+const { width } = Dimensions.get('window');
 
 const SendScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
-  const [recipient, setRecipient] = useState('');
-  const [recipientType, setRecipientType] = useState('email');
+  const [screenState, setScreenState] = useState('recipient'); // 'recipient', 'amount', 'recipientInput', 'verify'
+  const [selectedRecipient, setSelectedRecipient] = useState(null);
   const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const mutation = useMutation(createTransfer, {
-    onSuccess: (data) => {
-      if (data.success) {
+  const [recipients, setRecipients] = useState([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [recipientsError, setRecipientsError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortByNameAsc, setSortByNameAsc] = useState(true);
+  const [manualRecipient, setManualRecipient] = useState('');
+  const [recipientType, setRecipientType] = useState('email'); // 'email', 'username', 'cnic'
+  const [description, setDescription] = useState(''); // New state for description
+
+  // Animation setup using React Native Animated
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const animatedStyle = {
+    opacity: fadeAnim,
+    transform: [{ translateX: slideAnim }],
+  };
+
+  const transitionToScreen = (newScreen) => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setScreenState(newScreen);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+    Animated.timing(slideAnim, {
+      toValue: -width,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // API mutation using createTransfer
+  const mutation = useMutation(
+    async (transferData) => {
+      const { identifier, amount, description } = transferData;
+      const response = await createTransfer(identifier, amount, description);
+      return response;
+    },
+    {
+      onSuccess: (data) => {
         alert('Transfer initiated successfully!');
         navigation.goBack();
-      } else {
-        setErrorMessage(data.message);
-      }
-    },
-    onError: (error) => {
-      setErrorMessage(error.message || 'Failed to initiate transfer');
-    },
-  });
+      },
+      onError: (error) => {
+        setErrorMessage(error.message || 'Failed to initiate transfer');
+      },
+    }
+  );
 
-  const handleSend = async () => {
+  // RecipientScreen Logic
+  useEffect(() => {
+    const loadRecipients = async () => {
+      if (!user?.UserID) {
+        setRecipientsError('User not authenticated');
+        return;
+      }
+      if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
+        setRecipientsError('Failed to load recipient storage module');
+        return;
+      }
+      try {
+        setRecipientsLoading(true);
+        setRecipientsError(null);
+        await recipientStorage.setUserId(user.UserID);
+        const loadedRecipients = await recipientStorage.getRecipients(user.UserID);
+        const validRecipients = loadedRecipients?.filter((item) => item && typeof item === 'object' && item.name) || [];
+        setRecipients(validRecipients);
+      } catch (error) {
+        setRecipientsError(error.message || 'Failed to load recipients');
+      } finally {
+        setRecipientsLoading(false);
+      }
+    };
+    if (screenState === 'recipient') {
+      loadRecipients();
+    }
+  }, [screenState, user?.UserID]);
+
+  const filteredRecipients = useMemo(() => {
+    let result = [...recipients];
+    if (searchQuery) {
+      result = result.filter((item) => {
+        if (!item || !item.name) return false;
+        return item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+    }
+    result.sort((a, b) => {
+      const nameA = a?.name?.toLowerCase() || '';
+      const nameB = b?.name?.toLowerCase() || '';
+      return sortByNameAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+    return result;
+  }, [recipients, searchQuery, sortByNameAsc]);
+
+  const renderRecipient = useCallback(
+    ({ item }) => {
+      if (!item || !item.name) return null;
+      return (
+        <TouchableOpacity
+          style={styles.recipientItem}
+          onPress={() => {
+            setSelectedRecipient(item);
+            transitionToScreen('amount');
+          }}
+        >
+          {item.image ? (
+            <Image
+              source={{ uri: item.image }}
+              style={styles.recipientImage}
+              onError={(e) => console.error(`Error loading image for ${item.name}:`, e.nativeEvent.error)}
+            />
+          ) : (
+            <View style={styles.recipientAvatar}>
+              <Text style={styles.recipientAvatarText}>{item.name?.[0]?.toUpperCase() || 'R'}</Text>
+            </View>
+          )}
+          <View style={styles.recipientTextContainer}>
+            <Text style={styles.recipientText}>{item.name}</Text>
+            <Text style={styles.recipientSubText}>{item.email || item.cnic || item.username || 'No contact info'}</Text>
+          </View>
+          <Icon name="send" size={24} color={COLORS.secondary} style={styles.navIcon} />
+        </TouchableOpacity>
+      );
+    },
+    []
+  );
+
+  const handleFilterPress = () => setSortByNameAsc((prev) => !prev);
+
+  // Amount Input Screen Logic
+  const handleKeyPress = (key) => {
+    if (key === 'delete') {
+      setAmount((prev) => prev.slice(0, -1));
+    } else if (key === '+') {
+      // Ignore for now
+    } else {
+      setAmount((prev) => prev + key);
+    }
+  };
+
+  const handleAmountSubmit = () => {
+    const parsedAmount = parseFloat(amount);
+    if (!parsedAmount || parsedAmount <= 0) {
+      setErrorMessage('Please enter a valid amount');
+      return;
+    }
+    transitionToScreen('recipientInput');
+  };
+
+  // Recipient Input Screen Logic
+  const handleRecipientSubmit = () => {
+    if (!manualRecipient) {
+      setErrorMessage('Please enter a recipient');
+      return;
+    }
+    setSelectedRecipient({
+      recipientId: `manual-${Date.now()}`,
+      name: manualRecipient,
+      [recipientType]: manualRecipient,
+    });
+    transitionToScreen('verify');
+  };
+
+  // Verification Screen Logic
+  const handleConfirmSend = async () => {
+    if (!selectedRecipient) {
+      setErrorMessage('No recipient selected');
+      return;
+    }
     setErrorMessage('');
     try {
-      const transferData = {
-        [recipientType]: recipient,
-        Amount: parseFloat(amount),
-        Description: description || undefined,
+      const identifier = {
+        email: selectedRecipient.email || undefined,
+        cnic: selectedRecipient.cnic || undefined,
+        username: selectedRecipient.username || undefined,
       };
-      await TransferCreateSchema.validate(transferData);
+      const transferData = {
+        identifier,
+        amount: parseFloat(amount),
+        description: description || undefined,
+      };
       mutation.mutate(transferData);
     } catch (error) {
       setErrorMessage(error.message || 'Invalid input');
@@ -1823,95 +2812,509 @@ const SendScreen = ({ navigation }) => {
 
   if (!user) {
     return (
-      <View style={globalStyles.container}>
-        <Text>Please log in to send money</Text>
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Please log in to send money</Text>
         <TouchableOpacity
-          style={globalStyles.button}
+          style={styles.sendButton}
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={globalStyles.buttonText}>Go to Login</Text>
+          <Text style={styles.sendButtonText}>Go to Login</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-      <ScrollView contentContainerStyle={globalStyles.container}>
-        <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
-          Send Money
-        </Text>
-        <View style={styles.recipientTypeContainer}>
-          {['email', 'username', 'cnic'].map((type) => (
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <Animated.View style={[styles.animatedContainer, animatedStyle]}>
+        {screenState === 'recipient' && (
+          <View style={styles.recipientContainer}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon name="arrow-back" size={28} color={COLORS.text} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Send Money</Text>
+            </View>
+            <View style={styles.sendMoneyContainer}>
+              <Text style={styles.sendMoneyHeading}>Send Money Now</Text>
+              <Text style={styles.sendMoneySubtext}>Transfer to Your Favorites</Text>
+              <TouchableOpacity
+                style={styles.sendButton}
+                onPress={() => {
+                  setSelectedRecipient(null);
+                  transitionToScreen('amount');
+                }}
+              >
+                <Text style={styles.sendButtonText}>SEND NOW</Text>
+              </TouchableOpacity>
+            </View>
+            {errorMessage && screenState === 'recipient' && (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
+            <Text style={styles.findFavouritesHeading}>Find Your Favorites</Text>
+            <View style={styles.searchBarContainer}>
+              <Icon name="search" size={24} color={COLORS.placeholder} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Find Favorites"
+                placeholderTextColor={COLORS.placeholder}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              <TouchableOpacity style={styles.filterIconContainer} onPress={handleFilterPress}>
+                <Icon
+                  name="sort-by-alpha"
+                  size={24}
+                  color={COLORS.text}
+                  style={{ transform: [{ rotate: sortByNameAsc ? '0deg' : '180deg' }] }}
+                />
+              </TouchableOpacity>
+            </View>
+            {recipientsLoading && <Text style={styles.loadingText}>Loading recipients...</Text>}
+            {recipientsError && <Text style={styles.errorText}>{recipientsError}</Text>}
+            {filteredRecipients.length > 0 ? (
+              <FlatList
+                data={filteredRecipients}
+                renderItem={renderRecipient}
+                keyExtractor={(item) => `recipient-${item?.recipientId || Math.random().toString()}`}
+                style={styles.list}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            ) : (
+              !recipientsLoading &&
+              !recipientsError && <Text style={styles.noRecipientsText}>No recipients found.</Text>
+            )}
+          </View>
+        )}
+
+        {screenState === 'amount' && (
+          <View style={styles.amountContainer}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => transitionToScreen('recipient')}>
+                <Icon name="arrow-back" size={28} color={COLORS.text} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Set Amount</Text>
+            </View>
+            <View style={styles.amountDisplayContainer}>
+              <Text style={styles.amountLabel}>How much would you like to send?</Text>
+              <Text style={styles.amountText}>{amount ? `$${amount}` : '$0'}</Text>
+            </View>
+            <View style={styles.keypadContainer}>
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '0', 'delete'].map((key) => (
+                <TouchableOpacity
+                  key={key}
+                  style={styles.keypadButton}
+                  onPress={() => handleKeyPress(key)}
+                >
+                  <Text style={styles.keypadText}>
+                    {key === 'delete' ? <Icon name="backspace" size={24} color={COLORS.text} /> : key}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {errorMessage && screenState === 'amount' && (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
             <TouchableOpacity
-              key={type}
-              style={[
-                styles.recipientTypeButton,
-                recipientType === type && styles.recipientTypeButtonActive,
-              ]}
-              onPress={() => setRecipientType(type)}
+              style={[styles.sendButton, styles.sendNowButton]}
+              onPress={handleAmountSubmit}
             >
-              <Text style={styles.recipientTypeText}>{type.toUpperCase()}</Text>
+              <Text style={styles.sendButtonText}>NEXT</Text>
             </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          style={globalStyles.input}
-          placeholder={`Recipient ${recipientType.toUpperCase()}`}
-          value={recipient}
-          onChangeText={setRecipient}
-          autoCapitalize={recipientType === 'email' ? 'none' : 'words'}
-        />
-        <TextInput
-          style={globalStyles.input}
-          placeholder="Amount"
-          keyboardType="numeric"
-          value={amount}
-          onChangeText={setAmount}
-        />
-        <TextInput
-          style={globalStyles.input}
-          placeholder="Description (optional)"
-          value={description}
-          onChangeText={setDescription}
-        />
-        {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
-        <TouchableOpacity
-          style={[globalStyles.button, mutation.isLoading && { opacity: 0.7 }]}
-          onPress={handleSend}
-          disabled={mutation.isLoading}
-        >
-          <Text style={globalStyles.buttonText}>
-            {mutation.isLoading ? 'Sending...' : 'Send'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+          </View>
+        )}
+
+        {screenState === 'recipientInput' && (
+          <View style={styles.recipientInputContainer}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => transitionToScreen('amount')}>
+                <Icon name="arrow-back" size={28} color={COLORS.text} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Enter Recipient</Text>
+            </View>
+            <Text style={styles.sectionTitle}>Enter Recipient Details</Text>
+            <View style={styles.recipientTypeContainer}>
+              {['email', 'username', 'cnic'].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.recipientTypeButton,
+                    recipientType === type && styles.recipientTypeButtonActive,
+                  ]}
+                  onPress={() => setRecipientType(type)}
+                >
+                  <Text style={styles.recipientTypeText}>{type.toUpperCase()}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.manualInput}
+              placeholder={`Enter recipient ${recipientType}`}
+              value={manualRecipient}
+              onChangeText={setManualRecipient}
+              autoCapitalize={recipientType === 'email' ? 'none' : 'words'}
+            />
+            <TextInput
+              style={styles.manualInput}
+              placeholder="Description (optional)"
+              value={description}
+              onChangeText={setDescription}
+            />
+            {errorMessage && screenState === 'recipientInput' && (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={handleRecipientSubmit}
+            >
+              <Text style={styles.sendButtonText}>NEXT</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {screenState === 'verify' && (
+          <View style={styles.verifyContainer}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => transitionToScreen('recipientInput')}>
+                <Icon name="arrow-back" size={28} color={COLORS.text} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Verify Transfer</Text>
+            </View>
+            {selectedRecipient ? (
+              <>
+                <Text style={styles.verifyTitle}>Please Confirm Details</Text>
+                <View style={styles.verifyDetail}>
+                  <Text style={styles.verifyLabel}>Recipient:</Text>
+                  <Text style={styles.verifyValue}>{selectedRecipient.name || 'Unknown'}</Text>
+                </View>
+                <View style={styles.verifyDetail}>
+                  <Text style={styles.verifyLabel}>Contact:</Text>
+                  <Text style={styles.verifyValue}>
+                    {selectedRecipient.email || selectedRecipient.cnic || selectedRecipient.username || 'N/A'}
+                  </Text>
+                </View>
+                <View style={styles.verifyDetail}>
+                  <Text style={styles.verifyLabel}>Amount:</Text>
+                  <Text style={styles.verifyValue}>${amount}</Text>
+                </View>
+                {description && (
+                  <View style={styles.verifyDetail}>
+                    <Text style={styles.verifyLabel}>Description:</Text>
+                    <Text style={styles.verifyValue}>{description}</Text>
+                  </View>
+                )}
+                {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+                <TouchableOpacity
+                  style={[styles.sendButton, mutation.isLoading && { opacity: 0.7 }]}
+                  onPress={handleConfirmSend}
+                  disabled={mutation.isLoading}
+                >
+                  <Text style={styles.sendButtonText}>
+                    {mutation.isLoading ? 'Sending...' : 'Confirm & Send'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={styles.verifyErrorContainer}>
+                <Text style={styles.errorText}>No recipient selected. Please go back and enter a recipient.</Text>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={() => transitionToScreen('recipientInput')}
+                >
+                  <Text style={styles.sendButtonText}>Go Back</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+      </Animated.View>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  animatedContainer: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: COLORS.white,
+    elevation: 4,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginLeft: 16,
+  },
+  // Recipient Screen Styles
+  recipientContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
+  sendMoneyContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  sendMoneyHeading: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  sendMoneySubtext: {
+    fontSize: 16,
+    color: COLORS.placeholder,
+    marginBottom: 20,
+  },
+  sendButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  sendButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  findFavouritesHeading: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    marginBottom: 20,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.text,
+    paddingVertical: 8,
+  },
+  filterIconContainer: {
+    padding: 8,
+  },
+  list: {
+    flex: 1,
+  },
+  recipientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  recipientImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  recipientAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  recipientAvatarText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  recipientTextContainer: {
+    flex: 1,
+  },
+  recipientText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  recipientSubText: {
+    fontSize: 14,
+    color: COLORS.placeholder,
+  },
+  navIcon: {
+    marginLeft: 12,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: COLORS.gray,
+    marginVertical: 4,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLORS.danger,
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  noRecipientsText: {
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  // Amount Input Screen Styles
+  amountContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    backgroundColor: COLORS.white,
+  },
+  amountDisplayContainer: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 15,
+    padding: 20,
+    marginVertical: 30,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  amountLabel: {
+    fontSize: 18,
+    color: COLORS.white,
+    marginBottom: 10,
+  },
+  amountText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  keypadContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  keypadButton: {
+    width: width / 3 - 20,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 5,
+    elevation: 2,
+  },
+  keypadText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  sendNowButton: {
+    width: '100%',
+    paddingVertical: 15,
+  },
+  // Recipient Input Screen Styles
+  recipientInputContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    backgroundColor: COLORS.white,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 16,
+  },
   recipientTypeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: globalStyles.SPACING.medium,
+    marginBottom: 16,
   },
   recipientTypeButton: {
     flex: 1,
     padding: 10,
     borderWidth: 1,
-    borderColor: globalStyles.COLORS.gray,
+    borderColor: COLORS.gray,
     borderRadius: 8,
     alignItems: 'center',
     marginHorizontal: 5,
   },
   recipientTypeButtonActive: {
-    backgroundColor: globalStyles.COLORS.primary,
-    borderColor: globalStyles.COLORS.primary,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   recipientTypeText: {
-    color: globalStyles.COLORS.text,
-    fontSize: globalStyles.FONT_SIZES.medium,
+    color: COLORS.text,
+    fontSize: 14,
+  },
+  manualInput: {
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  // Verification Screen Styles
+  verifyContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    backgroundColor: COLORS.white,
+  },
+  verifyErrorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verifyTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginVertical: 20,
+    textAlign: 'center',
+  },
+  verifyDetail: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray,
+  },
+  verifyLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  verifyValue: {
+    fontSize: 16,
+    color: COLORS.text,
   },
 });
 
@@ -2202,7 +3605,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useQuery } from 'react-query';
 import { AuthContext } from '../context/AuthContext';
-import { getTransactions, exportTransactions } from '../services/transactionService';
+import { getLastTenTransactions, exportTransactions } from '../services/transactionService';
 import { formatCurrency } from '../utils/helpers';
 import globalStyles from '../styles/globalStyles';
 
@@ -2211,15 +3614,17 @@ const TransactionsScreen = () => {
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
 
+
   const { data: transactions, isLoading, refetch } = useQuery(
     ['transactions', { page, per_page: perPage }],
-    () => getTransactions({ page, per_page: perPage }),
+    () => getLastTenTransactions(),
     { enabled: !!user }
   );
+  
 
   const handleExport = async () => {
     try {
-      const response = await exportTransactions({ page, per_page: perPage });
+      const response = await exportTransactions();
       // Handle CSV download (e.g., save to device or open)
       alert('Transactions exported successfully');
     } catch (error) {
@@ -2227,20 +3632,28 @@ const TransactionsScreen = () => {
     }
   };
 
-  const renderTransaction = ({ item }) => (
-    <View style={styles.transaction}>
-      <Text style={[styles.transactionIcon, { color: item.TransactionType === 'Deposit' ? '#2ecc71' : '#e74c3c' }]}>
-        {item.TransactionType === 'Deposit' ? '↓' : '↑'}
-      </Text>
-      <View style={styles.transactionDetails}>
-        <Text style={styles.transactionDescription}>{item.Description || item.TransactionType}</Text>
-        <Text style={styles.transactionDate}>{item.Timestamp}</Text>
+  const renderTransaction = ({ item }) => {
+    const isDeposit = !!item.DepositID;
+    const transactionType = isDeposit ? 'Deposit' : 'Transfer';
+    const transactionId = item.DepositID || item.TransferID;
+
+    return (
+      <View style={styles.transaction}>
+        <Text style={[styles.transactionIcon, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
+          {isDeposit ? '↓' : '↑'}
+        </Text>
+        <View style={styles.transactionDetails}>
+          <Text style={styles.transactionDescription}>{item.Description || transactionType}</Text>
+          <Text style={styles.transactionDate}>
+            {new Date(item.Timestamp).toLocaleString()}
+          </Text>
+        </View>
+        <Text style={[styles.transactionAmount, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
+          {isDeposit ? '+' : '-'}{formatCurrency(item.Amount)}
+        </Text>
       </View>
-      <Text style={[styles.transactionAmount, { color: item.TransactionType === 'Deposit' ? '#2ecc71' : '#e74c3c' }]}>
-        {item.TransactionType === 'Deposit' ? '+' : '-'}{formatCurrency(item.Amount)}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   if (!user) {
     return (
@@ -2257,19 +3670,18 @@ const TransactionsScreen = () => {
       </Text>
       {isLoading ? (
         <Text>Loading transactions...</Text>
+      ) : !transactions?.data?.items?.length ? (
+        <Text>No transactions available</Text>
       ) : (
         <>
           <FlatList
-            data={transactions?.data || []}
+            data={transactions?.data?.items || []}
             renderItem={renderTransaction}
-            keyExtractor={(item) => item.TransactionID.toString()}
+            keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
             onEndReached={() => transactions?.total_pages > page && setPage(page + 1)}
             onEndReachedThreshold={0.5}
           />
-          <TouchableOpacity
-            style={globalStyles.button}
-            onPress={handleExport}
-          >
+          <TouchableOpacity style={globalStyles.button} onPress={handleExport}>
             <Text style={globalStyles.buttonText}>Export Transactions</Text>
           </TouchableOpacity>
         </>
@@ -2291,8 +3703,22 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   transactionDetails: {
-    flex: 1
-  }})
+    flex: 1,
+  },
+  transactionDescription: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  transactionDate: {
+    fontSize: 14,
+    color: '#777',
+  },
+  transactionAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default TransactionsScreen;
 </DOCUMENT>
@@ -2369,7 +3795,7 @@ c:/AutFinanceBank/src/screens/SignupStep/SignupStep1.js
 <DOCUMENT>
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { checkUsernameUnique } from '../../services/api';
+import { checkUniqueness } from '../../services/userService';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep1 = ({ navigation }) => {
@@ -2395,11 +3821,13 @@ const SignupStep1 = ({ navigation }) => {
     }
 
     try {
-      const result = await checkUsernameUnique(trimmedUsername);
-      if (!result.success) {
-        setErrorMessage(result.message);
+      const result = await checkUniqueness('Username', trimmedUsername);
+      
+      if (!result.success || !result.data?.is_unique) {
+        setErrorMessage('Username is already taken.');
         return false;
       }
+    
       return true;
     } catch (error) {
       console.error('SignupStep1 checkUsernameUnique error:', error);
@@ -2508,10 +3936,13 @@ export default SignupStep1;
 c:/AutFinanceBank/src/screens/SignupStep/SignupStep2.js
 <DOCUMENT>
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, Modal,
+  StyleSheet, KeyboardAvoidingView, ScrollView, Platform
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
-import { checkCnicUnique } from '../../services/api';
+import { checkUniqueness } from '../../services/userService';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep2 = ({ navigation, route }) => {
@@ -2531,32 +3962,23 @@ const SignupStep2 = ({ navigation, route }) => {
   };
 
   const validateInputs = async () => {
-    const trimmedCnic = cnic.replace(/\D/g, '');
     const trimmedPhoneNumber = phoneNumber.trim();
+    const formattedCnic = formatCnic(cnic);
 
-    if (!trimmedCnic || !trimmedPhoneNumber) {
+    if (!formattedCnic || !trimmedPhoneNumber) {
       setErrorMessage('All fields are required');
       return false;
     }
-    if (trimmedCnic.length !== 13) {
-      setErrorMessage('Please enter a valid 13-digit CNIC number');
-      return false;
-    }
 
-    try {
-      const result = await checkCnicUnique(trimmedCnic);
-      if (!result.success) {
-        setErrorMessage(result.message);
-        return false;
-      }
-    } catch (error) {
-      console.error('SignupStep2 checkCnicUnique error:', error);
-      setErrorMessage('Failed to validate CNIC. Please try again.');
+    if (!/^\d{5}-\d{7}-\d{1}$/.test(formattedCnic)) {
+      setErrorMessage('Please enter CNIC in format 12345-1234567-1');
       return false;
     }
 
     const today = new Date();
-    const age = today.getFullYear() - dateOfBirth.getFullYear() - (today.getMonth() < dateOfBirth.getMonth() || (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
+    const age = today.getFullYear() - dateOfBirth.getFullYear() -
+      (today.getMonth() < dateOfBirth.getMonth() ||
+      (today.getMonth() === dateOfBirth.getMonth() && today.getDate() < dateOfBirth.getDate()) ? 1 : 0);
     if (age < 18) {
       setErrorMessage('You must be at least 18 years old to sign up');
       return false;
@@ -2567,24 +3989,38 @@ const SignupStep2 = ({ navigation, route }) => {
       setErrorMessage('Please enter a valid phone number (10-15 digits, optional + prefix)');
       return false;
     }
-    return true;
+
+    try {
+      const result = await checkUniqueness('CNIC', formattedCnic);
+      if (!result.success || !result.data?.is_unique) {
+        setErrorMessage('CNIC is already taken.');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('SignupStep2 checkCnicUnique error:', error);
+      setErrorMessage('Failed to validate CNIC. Please try again.');
+      return false;
+    }
   };
 
   const handleNext = async () => {
     setErrorMessage('');
     setIsLoading(true);
     try {
-      if (!(await validateInputs())) {
-        return;
-      }
+      const isValid = await validateInputs();
+      if (!isValid) return;
+
       const formattedCnic = formatCnic(cnic);
       const trimmedPhoneNumber = phoneNumber.trim();
+
       console.log('SignupStep2: Navigating to SignupStep3 with data:', {
         ...signupData,
         cnic: formattedCnic,
         dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
         phoneNumber: trimmedPhoneNumber,
       });
+
       navigation.navigate('SignupStep3', {
         signupData: {
           ...signupData,
@@ -2633,6 +4069,7 @@ const SignupStep2 = ({ navigation, route }) => {
               />
             ))}
           </View>
+
           <TextInput
             style={globalStyles.input}
             placeholder="CNIC (e.g., 12345-6789012-3)"
@@ -2640,9 +4077,10 @@ const SignupStep2 = ({ navigation, route }) => {
             keyboardType="numeric"
             value={cnic}
             onChangeText={(text) => setCnic(formatCnic(text))}
-            maxLength={15} // 13 digits + 2 dashes
+            maxLength={15}
             editable={!isLoading}
           />
+
           <TouchableOpacity
             style={globalStyles.input}
             onPress={() => !isLoading && setShowDatePicker(true)}
@@ -2652,6 +4090,7 @@ const SignupStep2 = ({ navigation, route }) => {
               {format(dateOfBirth, 'yyyy-MM-dd')}
             </Text>
           </TouchableOpacity>
+
           {showDatePicker && (
             <Modal transparent animationType="fade">
               <View style={styles.datePickerModal}>
@@ -2675,6 +4114,7 @@ const SignupStep2 = ({ navigation, route }) => {
               </View>
             </Modal>
           )}
+
           <TextInput
             style={globalStyles.input}
             placeholder="Phone Number (e.g., +1234567890)"
@@ -2684,7 +4124,9 @@ const SignupStep2 = ({ navigation, route }) => {
             onChangeText={setPhoneNumber}
             editable={!isLoading}
           />
+
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+
           <TouchableOpacity
             style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
             onPress={handleNext}
@@ -2876,10 +4318,20 @@ export default SignupStep3;
 c:/AutFinanceBank/src/screens/SignupStep/SignupStep4.js
 <DOCUMENT>
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Image,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { checkEmailUniqueAndSendOtp } from '../../services/api';
+import { checkUniqueness } from '../../services/userService';
 import globalStyles from '../../styles/globalStyles';
 
 const SignupStep4 = ({ navigation, route }) => {
@@ -2888,6 +4340,7 @@ const SignupStep4 = ({ navigation, route }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [accountType, setAccountType] = useState(null); // Savings or Current
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -2895,7 +4348,7 @@ const SignupStep4 = ({ navigation, route }) => {
 
   const selectImage = () => {
     launchImageLibrary(
-      { mediaType: 'photo', maxWidth: 100, maxHeight: 100, quality: 0.5 },
+      { mediaType: 'photo', quality: 1.0 },
       (response) => {
         if (response.didCancel) {
           console.log('SignupStep4: Image picker cancelled');
@@ -2916,12 +4369,22 @@ const SignupStep4 = ({ navigation, route }) => {
     const trimmedConfirmPassword = confirmPassword.trim();
 
     if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
-      setErrorMessage('All fields are required');
+      setErrorMessage('Email, password, and confirm password are required');
       return false;
     }
 
     if (!profileImage) {
       setErrorMessage('Please select a profile picture');
+      return false;
+    }
+
+    if (!accountType) {
+      setErrorMessage('Please select an account type');
+      return false;
+    }
+
+    if (!['Savings', 'Current'].includes(accountType)) {
+      setErrorMessage('Account type must be Savings or Current');
       return false;
     }
 
@@ -2932,9 +4395,9 @@ const SignupStep4 = ({ navigation, route }) => {
     }
 
     try {
-      const result = await checkEmailUniqueAndSendOtp(trimmedEmail);
-      if (!result.success) {
-        setErrorMessage(result.message);
+      const result = await checkUniqueness('Email', trimmedEmail);
+      if (!result.success || !result.data?.is_unique) {
+        setErrorMessage('Email is already taken');
         return false;
       }
     } catch (error) {
@@ -2964,7 +4427,8 @@ const SignupStep4 = ({ navigation, route }) => {
       if (!(await validateInputs())) {
         return;
       }
-      const trimmedData = { email: email.trim(), password: password.trim(), profileImage };
+      // const trimmedData = { email: email.trim(), password: password.trim(), profileImage, AccountType: accountType }; used when image implement
+      const trimmedData = { email: email.trim(), password: password.trim(),  AccountType: accountType };
       console.log('SignupStep4: Navigating to SignupStep5 with data:', {
         ...signupData,
         ...trimmedData,
@@ -2982,6 +4446,21 @@ const SignupStep4 = ({ navigation, route }) => {
       setIsLoading(false);
     }
   };
+
+  const Checkbox = ({ label, value, selected, onSelect }) => (
+    <TouchableOpacity
+      style={styles.checkboxContainer}
+      onPress={() => onSelect(value)}
+      disabled={isLoading}
+    >
+      <Icon
+        name={selected ? 'check-box' : 'check-box-outline-blank'}
+        size={24}
+        color={selected ? globalStyles.COLORS.primary : globalStyles.COLORS.placeholder}
+      />
+      <Text style={[styles.checkboxLabel, { color: globalStyles.COLORS.text }]}>{label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -3077,6 +4556,25 @@ const SignupStep4 = ({ navigation, route }) => {
               />
             </TouchableOpacity>
           </View>
+          <View style={styles.accountTypeContainer}>
+            <Text style={[globalStyles.text, { marginBottom: globalStyles.SPACING.small }]}>
+              Account Type
+            </Text>
+            <View style={styles.checkboxRow}>
+              <Checkbox
+                label="Savings"
+                value="Savings"
+                selected={accountType === 'Savings'}
+                onSelect={setAccountType}
+              />
+              <Checkbox
+                label="Current"
+                value="Current"
+                selected={accountType === 'Current'}
+                onSelect={setAccountType}
+              />
+            </View>
+          </View>
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
           <TouchableOpacity
             style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
@@ -3112,6 +4610,24 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
+  accountTypeContainer: {
+    width: '100%',
+    marginTop: globalStyles.SPACING.medium,
+    marginBottom: globalStyles.SPACING.medium,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: globalStyles.SPACING.medium,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    fontSize: globalStyles.FONT_SIZES.medium,
+    marginLeft: globalStyles.SPACING.small,
+  },
 });
 
 export default SignupStep4;
@@ -3119,66 +4635,126 @@ export default SignupStep4;
 
 c:/AutFinanceBank/src/screens/SignupStep/SignupStep5.js
 <DOCUMENT>
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { verifyOtp } from '../../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import { sendVerification } from '../../services/userService';
+import generateOtpEmail from '../../Assets/mailbody';
 import globalStyles from '../../styles/globalStyles';
+import { secret_code } from '@env';
 
 const SignupStep5 = ({ navigation, route }) => {
   const { signupData } = route.params;
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [generatedOtp, setGeneratedOtp] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [timer, setTimer] = useState(0); // Timer state in seconds
 
-  const refs = Array(6).fill().map(() => React.createRef());
+  const refs = useRef(Array(6).fill().map(() => React.createRef()));
 
-  const handleOtpChange = (value, index) => {
-    const trimmedValue = value.trim();
-    if (trimmedValue.length > 1) return; // Limit to single digit
-    const newOtp = [...otp];
-    newOtp[index] = trimmedValue;
-    setOtp(newOtp);
-    setErrorMessage(''); // Clear error on input
+  useEffect(() => {
+    if (!otpSent) {
+      sendOtp();
+    }
+  }, [otpSent]);
 
-    if (trimmedValue && index < 5) {
-      refs[index + 1].current.focus();
-    } else if (!trimmedValue && index > 0) {
-      refs[index - 1].current.focus();
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const generateOtp = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const sendOtp = async () => {
+    const otpToSend = generateOtp();
+    setGeneratedOtp(otpToSend);
+    setErrorMessage('');
+    setResendLoading(true);
+    setTimer(30); // Start 30-second timer
+
+    const date = new Date();
+    const reason = "Account verification";
+    const emailContent = generateOtpEmail(date, reason, otpToSend);
+
+    const payload = {
+      email: signupData.email,
+      content: emailContent,
+      type: 'otp',
+      secret_code,
+    };
+
+    try {
+      const result = await sendVerification(payload);
+      console.log('OTP sent:', otpToSend);
+      if (!result.success) {
+        setErrorMessage(result.message);
+      } else {
+        setOtpSent(true);
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      setErrorMessage('Failed to send OTP. Please try again.');
+    } finally {
+      setResendLoading(false);
     }
   };
 
-  const validateOtp = async () => {
+  const handleOtpChange = (value, index) => {
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 1) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = trimmedValue;
+    setOtp(newOtp);
+    setErrorMessage('');
+
+    if (trimmedValue && index < 5) {
+      refs.current[index + 1].current.focus();
+    } else if( index > 0) {
+      refs.current[index - 1].current.focus();
+    }
+  };
+
+  const validateOtp = () => {
     const otpString = otp.join('');
     if (otpString.length !== 6 || isNaN(otpString)) {
       setErrorMessage('Please enter a valid 6-digit OTP');
       return false;
     }
 
-    try {
-      const result = await verifyOtp(signupData.email, otpString);
-      if (!result.success) {
-        setErrorMessage(result.message);
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error('SignupStep5 verifyOtp error:', error);
-      setErrorMessage('Failed to verify OTP. Please try again.');
+    if (otpString !== generatedOtp) {
+      setErrorMessage('OTP does not match');
       return false;
     }
+
+    return true;
   };
 
   const handleVerify = async () => {
-    setErrorMessage('');
     setIsLoading(true);
     try {
-      if (!(await validateOtp())) {
-        return;
-      }
-      console.log('SignupStep5: Navigating to SignupStep6 with data:', signupData);
+      if (!validateOtp()) return;
       navigation.navigate('SignupStep6', { signupData });
     } catch (error) {
-      console.error('SignupStep5 handleVerify error:', error);
+      console.error('Verification error:', error);
       setErrorMessage('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -3197,9 +4773,11 @@ const SignupStep5 = ({ navigation, route }) => {
             <View style={[globalStyles.circle, globalStyles.circlePrimary]} />
             <View style={[globalStyles.circle, globalStyles.circleSecondary]} />
           </View>
+
           <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large, alignSelf: 'center' }]}>
             Email Verification
           </Text>
+
           <View style={globalStyles.dotContainer}>
             {[...Array(6)].map((_, index) => (
               <View
@@ -3211,11 +4789,12 @@ const SignupStep5 = ({ navigation, route }) => {
               />
             ))}
           </View>
+
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: globalStyles.input.width }}>
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={refs[index]}
+                ref={refs.current[index]}
                 style={[styles.otpInput, { borderColor: errorMessage ? globalStyles.COLORS.error : globalStyles.COLORS.gray }]}
                 keyboardType="numeric"
                 maxLength={1}
@@ -3225,7 +4804,9 @@ const SignupStep5 = ({ navigation, route }) => {
               />
             ))}
           </View>
+
           {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+
           <TouchableOpacity
             style={[globalStyles.button, isLoading && { opacity: 0.7 }, { alignSelf: 'center' }]}
             onPress={handleVerify}
@@ -3233,6 +4814,16 @@ const SignupStep5 = ({ navigation, route }) => {
           >
             <Text style={globalStyles.buttonText}>
               {isLoading ? 'Verifying...' : 'Verify OTP'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={sendOtp}
+            disabled={timer > 0 || resendLoading}
+            style={{ marginTop: globalStyles.SPACING.medium, alignSelf: 'center' }}
+          >
+            <Text style={[globalStyles.textLink, timer > 0 && { opacity: 0.5 }]}>
+              {resendLoading ? 'Resending...' : timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -3261,7 +4852,7 @@ c:/AutFinanceBank/src/screens/SignupStep/SignupStep6.js
 <DOCUMENT>
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { registerUser } from '../../services/authService';
+import { registerUser } from '../../services/userService';
 import { formatCnic } from '../../utils/helpers';
 import globalStyles from '../../styles/globalStyles';
 
@@ -3285,20 +4876,24 @@ const SignupStep6 = ({ navigation, route }) => {
           CNIC: formatCnic(signupData.cnic),
           Email: signupData.email,
           Password: signupData.password,
-          AccountType: 'Savings', // Default
+          AccountType: signupData.AccountType, 
           DateOfBirth: signupData.dateOfBirth,
           IsActive: false,
         };
+        console.log('SignupStep6: Sending userData:', userData);
+        
         const result = await registerUser(userData);
         if (result.success) {
           console.log('SignupStep6: User registered successfully');
           setIsLoading(false);
         } else {
+          
           setErrorMessage(result.message);
           setIsLoading(false);
         }
       } catch (error) {
         console.error('SignupStep6 submitData error:', error);
+        
         setErrorMessage(error.message || 'An error occurred while registering');
         setIsLoading(false);
       }
@@ -3393,14 +4988,36 @@ const api = axios.create({
   },
 });
 
+// List of endpoints that DO NOT require token
+const skipAuthRoutes = [
+  '/api/v1/users/check_uniqueness',
+  '/api/v1/users/send_verification',
+  '/api/v1/users/register',
+  '/api/v1/users/login',
+  '/api/v1/users/refresh',
+];
+
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!config.url) {
+    console.error('Request config.url is undefined');
+    return config;
   }
+
+  const url = config.url.startsWith('http') && config.baseURL
+    ? config.url.replace(config.baseURL, '')
+    : config.url;
+
+  if (!skipAuthRoutes.includes(url)) {
+    const token = await AsyncStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
   console.log('api.js: Request:', config.method.toUpperCase(), config.url, config.headers);
   return config;
 });
+
 
 api.interceptors.response.use(
   (response) => {
@@ -3416,73 +5033,70 @@ api.interceptors.response.use(
 export default api;
 </DOCUMENT>
 
-c:/AutFinanceBank/src/services/authService.js
+c:/AutFinanceBank/src/services/cloudinaryService.js
 <DOCUMENT>
-import api from './api';
-import { formatCnic } from '../utils/helpers';
+// cloudinaryService.js
 
-export const loginUser = async (loginId, password) => {
-  return api.post('/users/login', { login_id: loginId, Password: password });
+import axios from 'axios';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, CLOUDINARY_FOLDER } from '@env';
+
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const CLOUDINARY_IMAGE_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+/**
+ * Upload image using unsigned preset
+ * @param {string} imageUri - Local image URI
+ * @param {string} publicId - Path like "user_profile/username" or "recipients/username/recipient"
+ * @returns {Promise<string>} - Secure image URL
+ */
+const uploadImage = async (imageUri, publicId) => {
+  const fullPublicId = `${CLOUDINARY_FOLDER}/${publicId}`;
+
+  const formData = new FormData();
+  formData.append('file', {
+    uri: imageUri,
+    name: `${publicId}.jpg`,  // Appending the extension for the upload process
+    type: 'image/jpeg',
+  });
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  formData.append('public_id', fullPublicId);
+
+  const res = await axios.post(CLOUDINARY_UPLOAD_URL, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  return res.data.secure_url;
 };
 
-export const registerUser = async (userData) => {
-  const formattedData = {
-    ...userData,
-    CNIC: formatCnic(userData.cnic),
-    IsActive: false,
-    AccountType: userData.accountType || 'Savings',
-    DateOfBirth: userData.dateOfBirth,
-  };
-  return api.post('/users/register', formattedData);
+// ========== Upload Handlers ==========
+
+export const uploadUserProfileImage = async (imageUri, username) => {
+  // Use only username for public_id (no timestamp)
+  const publicId = `user_profile/${username}`;
+  return await uploadImage(imageUri, publicId);
 };
 
-export const refreshToken = async (refreshToken) => {
-  return api.post('/users/refresh', { token: refreshToken });
+export const uploadRecipientImage = async (imageUri, username, recipientName) => {
+  // Use only recipientName for public_id (no timestamp)
+  const publicId = `recipients/${username}/${recipientName}`;
+  return await uploadImage(imageUri, publicId);
 };
 
-export const sendOtpForPasswordReset = async (email) => {
-  // Note: Backend doesn't have this endpoint; using mock logic for now
-  return { success: true, message: 'OTP sent successfully' };
+// ========== Get Image URL ==========
+
+export const getUserProfileImageUrl = (username) => {
+  return `${CLOUDINARY_IMAGE_BASE_URL}/${CLOUDINARY_FOLDER}/user_profile/${username}.jpg`;
 };
 
-export const verifyOtpAndResetPassword = async (email, otp, newPassword) => {
-  // Note: Backend doesn't have this endpoint; using mock logic for now
-  if (otp === '123456') {
-    return { success: true, message: 'Password reset successfully' };
-  }
-  return { success: false, message: 'Invalid OTP' };
+export const getRecipientImageUrl = (username, recipientName) => {
+  return `${CLOUDINARY_IMAGE_BASE_URL}/${CLOUDINARY_FOLDER}/recipients/${username}/${recipientName}.jpg`;
 };
 
-export const checkUsernameUnique = async (username) => {
-  try {
-    await api.get(`/users/check-username/${username}`);
-    return { success: true };
-  } catch (error) {
-    return { success: false, message: error.message };
-  }
-};
-
-export const checkCnicUnique = async (cnic) => {
-  try {
-    await api.get(`/users/check-cnic/${formatCnic(cnic)}`);
-    return { success: true };
-  } catch (error) {
-    return { success: false, message: error.message };
-  }
-};
-
-export const checkEmailUniqueAndSendOtp = async (email) => {
-  try {
-    await api.get(`/users/check-email/${email}`);
-    return { success: true };
-  } catch (error) {
-    return { success: false, message: error.message };
-  }
-};
-
-export const verifyOtp = async (email, otp) => {
-  // Note: Backend doesn't have this endpoint; using mock logic for now
-  return { success: true };
+export const getAllRecipientImages = (username, recipientNames) => {
+  return recipientNames.map((name) => ({
+    name,
+    imageUrl: getRecipientImageUrl(username, name),
+  }));
 };
 </DOCUMENT>
 
@@ -3637,6 +5251,12 @@ export const mockUsers = [
 
 export const mockRecipients = [
   {
+    recipientId: 1,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
     recipientId: 2,
     name: 'Johnny Baistow',
     email: 'johnny.b@example.com',
@@ -3644,23 +5264,364 @@ export const mockRecipients = [
   },
   {
     recipientId: 3,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
+    recipientId: 4,
+    name: 'Johnny Baistow',
+    email: 'johnny.b@example.com',
+    image: require('../Assets/images/recipients/recipients1.jpg'),
+  },
+  {
+    recipientId: 5,
     name: 'Charles Smith',
     email: 'charles.s@example.com',
     image: require('../Assets/images/recipients/recipients2.jpg'),
   },
   {
-    recipientId: 4,
+    recipientId: 6,
     name: 'John Brown',
     email: 'john.brown@example.com',
     image: require('../Assets/images/recipients/recipients3.jpg'),
   },
   {
-    recipientId: 5,
+    recipientId: 7,
     name: 'Mellony Jane',
     email: 'mellony.j@example.com',
     image: require('../Assets/images/recipients/recipients4.jpg'),
   },
 ];
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/RecipientsData.js
+<DOCUMENT>
+export const mockRecipients = [
+  {
+    recipientId: 1,
+    name: 'John Doe',
+    username: 'johndoe',
+    email: 'john.doe@example.com',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 2,
+    name: 'Jane Smith',
+    username: 'janesmith',
+    email: 'jane.smith@example.com',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 3,
+    name: 'Michael Brown',
+    username: 'michaelb',
+    email: 'michael.brown@example.com',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 4,
+    name: 'Emily Davis',
+    username: 'emilyd',
+    email: 'emily.davis@example.com',
+    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 5,
+    name: 'David Wilson',
+    username: 'davidw',
+    email: 'david.wilson@example.com',
+    image: 'https://images.unsplash.com/photo-1506794778202-6d1d69059799?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 6,
+    name: 'Sarah Johnson',
+    username: 'sarahj',
+    email: 'sarah.johnson@example.com',
+    image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 7,
+    name: 'Chris Lee',
+    username: 'chrisl',
+    email: 'chris.lee@example.com',
+    image: 'https://images.unsplash.com/photo-1522556189639-b1509e2e2662?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 8,
+    name: 'Laura Martinez',
+    username: 'lauram',
+    email: 'laura.martinez@example.com',
+    image: 'https://images.unsplash.com/photo-1517365830460-955ce3f6b1f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 9,
+    name: 'James Taylor',
+    username: 'jamest',
+    email: 'james.taylor@example.com',
+    image: 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 10,
+    name: 'Olivia Anderson',
+    username: 'oliviaa',
+    email: 'olivia.anderson@example.com',
+    image: 'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 11,
+    name: 'Robert Thomas',
+    username: 'robertt',
+    email: 'robert.thomas@example.com',
+    image: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 12,
+    name: 'Sophia Jackson',
+    username: 'sophiaj',
+    email: 'sophia.jackson@example.com',
+    image: 'https://images.unsplash.com/photo-1512314889357-e1573b96c762?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 13,
+    name: 'William White',
+    username: 'williamw',
+    email: 'william.white@example.com',
+    image: 'https://images.unsplash.com/photo-1504257432389-52343af06ae3?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 14,
+    name: 'Isabella Harris',
+    username: 'isabellah',
+    email: 'isabella.harris@example.com',
+    image: 'https://images.unsplash.com/photo-1516223725307-6e76e5b591b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    recipientId: 15,
+    name: 'Daniel Clark',
+    username: 'danielc',
+    email: 'daniel.clark@example.com',
+    image: 'https://images.unsplash.com/photo-1506085452766-c330853bea50?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+  },
+];
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/recipientStorage.js
+<DOCUMENT>
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getUserDetails} from './userService'
+// Default image path for recipients
+const DEFAULT_IMAGE_PATH = 'https://via.placeholder.com/200?text=Default+User';
+
+// Store the current user ID
+let currentUserId = null;
+
+// Set the current user's ID
+const setUserId = async (userId) => {
+  if (!userId) {
+    console.error(`recipientStorage: setUserId failed - UserID is missing`);
+    throw new Error('UserID is required');
+  }
+  currentUserId = userId;
+  console.log('recipientStorage: Set UserID:', userId);
+  return true; // Removed initializeRecipients call to avoid implicit data access
+};
+
+// Get user-specific storage key
+const getStorageKey = (userId) => {
+  if (!userId) {
+    console.error(`recipientStorage: getStorageKey failed - UserID is missing`);
+    throw new Error('UserID is required');
+  }
+  return `@recipients:${userId}`;
+};
+
+// Initialize local storage for a user (only reads, does not modify)
+const initializeRecipients = async (userId) => {
+  try {
+    console.log(`recipientStorage: Initializing recipients for user ${userId}`);
+    const storageKey = getStorageKey(userId);
+    const storedRecipients = await AsyncStorage.getItem(storageKey);
+    if (storedRecipients) {
+      const parsedRecipients = JSON.parse(storedRecipients);
+      console.log(`recipientStorage: Found ${parsedRecipients.length} recipients in local storage for user ${userId}`);
+      return parsedRecipients;
+    }
+    console.log(`recipientStorage: No local storage found for user ${userId}, returning empty array`);
+    return [];
+  } catch (error) {
+    console.error(`recipientStorage: Error initializing recipients for user ${userId}: ${error.message}`);
+    throw new Error('Failed to initialize recipients');
+  }
+};
+
+// Save a new recipient to local storage for a user
+const saveRecipient = async (userId, recipient) => {
+  try {
+    console.log(`recipientStorage: Saving recipient for user ${userId}`);
+    const storageKey = getStorageKey(userId);
+    const storedRecipients = await AsyncStorage.getItem(storageKey);
+    const recipients = storedRecipients ? JSON.parse(storedRecipients) : [];
+
+    const maxId = recipients.length > 0 ? Math.max(...recipients.map(r => r.recipientId)) : 0;
+    const newRecipient = {
+      recipientId: maxId + 1,
+      name: recipient.name,
+      username: recipient.username,
+      ...(recipient.email && { email: recipient.email }),
+      ...(recipient.cnic && { cnic: recipient.cnic }),
+      image: recipient.image || DEFAULT_IMAGE_PATH,
+    };
+
+    const updatedRecipients = [...recipients, newRecipient];
+    await AsyncStorage.setItem(storageKey, JSON.stringify(updatedRecipients));
+
+    // Verify save
+    const savedData = await AsyncStorage.getItem(storageKey);
+    if (!savedData) {
+      console.error(`recipientStorage: Verification failed - No data found after saving for user ${userId}`);
+      throw new Error('Failed to verify saved data');
+    }
+    const parsedData = JSON.parse(savedData);
+    console.log(`recipientStorage: Saved new recipient for user ${userId}, total ${parsedData.length} recipients`);
+
+    return newRecipient;
+  } catch (error) {
+    console.error(`recipientStorage: Error saving recipient for user ${userId}: ${error.message}`);
+    throw new Error('Failed to save recipient');
+  }
+};
+
+// Get all recipients from local storage for a user
+const getRecipients = async (userId) => {
+  try {
+    console.log(`recipientStorage: Retrieving recipients for user ${userId}`);
+    const storageKey = getStorageKey(userId);
+    const storedRecipients = await AsyncStorage.getItem(storageKey);
+    if (storedRecipients) {
+      const recipients = JSON.parse(storedRecipients);
+      console.log(`recipientStorage: Retrieved ${recipients.length} recipients for user ${userId}`);
+      return recipients;
+    }
+    console.log(`recipientStorage: No recipients found for user ${userId}, returning empty array`);
+    return [];
+  } catch (error) {
+    console.error(`recipientStorage: Error retrieving recipients for user ${userId}: ${error.message}`);
+    throw new Error('Failed to retrieve recipients');
+  }
+};
+
+// Delete one or all recipients from local storage for a user
+const deleteRecipients = async (userId, recipientId = null) => {
+  try {
+    console.log(`recipientStorage: Deleting recipients for user ${userId}, recipientId: ${recipientId || 'all'}`);
+    const storageKey = getStorageKey(userId);
+    const storedRecipients = await AsyncStorage.getItem(storageKey);
+    let recipients = storedRecipients ? JSON.parse(storedRecipients) : [];
+
+    if (recipientId) {
+      recipients = recipients.filter(r => r.recipientId !== recipientId);
+      console.log(`recipientStorage: Deleted recipient ${recipientId} for user ${userId}`);
+    } else {
+      recipients = [];
+      console.log(`recipientStorage: Deleted all recipients for user ${userId}`);
+    }
+
+    await AsyncStorage.setItem(storageKey, JSON.stringify(recipients));
+
+    // Verify save
+    const savedData = await AsyncStorage.getItem(storageKey);
+    const parsedData = savedData ? JSON.parse(savedData) : [];
+    console.log(`recipientStorage: Verified ${parsedData.length} recipients remain for user ${userId}`);
+
+    return parsedData;
+  } catch (error) {
+    console.error(`recipientStorage: Error deleting recipients for user ${userId}: ${error.message}`);
+    throw new Error('Failed to delete recipients');
+  }
+};
+
+// Clear all recipients from local storage for a user (for testing/resetting)
+const clearRecipients = async (userId) => {
+  try {
+    console.log(`recipientStorage: Clearing recipients for user ${userId}`);
+    const storageKey = getStorageKey(userId);
+    await AsyncStorage.removeItem(storageKey);
+    console.log(`recipientStorage: Cleared all recipients for user ${userId}`);
+
+    // Verify clear
+    const savedData = await AsyncStorage.getItem(storageKey);
+    if (savedData) {
+      console.error(`recipientStorage: Verification failed - Data still exists after clearing for user ${userId}`);
+      throw new Error('Failed to verify cleared data');
+    }
+    console.log(`recipientStorage: Verified no recipients remain for user ${userId}`);
+    return true;
+  } catch (error) {
+    console.error(`recipientStorage: Error clearing recipients for user ${userId}: ${error.message}`);
+    throw new Error('Failed to clear recipients');
+  }
+};
+
+// Reset to local storage (for testing)
+const resetToLocalStorage = async (userId) => {
+  try {
+    console.log(`recipientStorage: Resetting to local storage for user ${userId}`);
+    const storageKey = getStorageKey(userId);
+    const storedRecipients = await AsyncStorage.getItem(storageKey);
+    if (storedRecipients) {
+      const parsedRecipients = JSON.parse(storedRecipients);
+      console.log(`recipientStorage: Reset to local storage for user ${userId} with ${parsedRecipients.length} recipients`);
+      return parsedRecipients;
+    }
+    console.log(`recipientStorage: No local storage found for user ${userId}, returning empty array`);
+    return [];
+  } catch (error) {
+    console.error(`recipientStorage: Error resetting to local storage for user ${userId}: ${error.message}`);
+    throw new Error('Failed to reset to local storage');
+  }
+};
+
+import { mockRecipients } from './RecipientsData';
+const saveMockRecipients = async (userId) => {
+  console.log(`recipientStorage: Saving mockRecipients for user ${userId}`);
+    try {
+      if (!userId) {
+        console.error(`recipientStorage: saveMockRecipients failed - UserID is missing`);
+        throw new Error('UserID is required');
+      }
+  
+      const storageKey = `@recipients:${userId}`;
+  
+      // Delete existing data
+      const existingData = await AsyncStorage.getItem(storageKey);
+      if (existingData) {
+        console.log(`recipientStorage: Deleting existing data for user ${userId}`);
+        await AsyncStorage.removeItem(storageKey);
+      }
+      
+      // Save mockRecipients
+      await AsyncStorage.setItem(storageKey, JSON.stringify(mockRecipients));
+      console.log(`recipientStorage: Saved ${mockRecipients.length} recipients for user ${userId}`);
+      
+      // Verify save
+      const savedData = await AsyncStorage.getItem(storageKey);
+      if (!savedData) {
+        console.error(`recipientStorage: Verification failed - No data found after saving for user ${userId}`);
+        throw new Error('Failed to verify saved data');
+      }
+      const parsedData = JSON.parse(savedData);
+      console.log(`recipientStorage: Verified saved ${parsedData.length} recipients for user ${userId}`);
+  
+      return mockRecipients;
+    } catch (error) {
+      console.error(`recipientStorage: Error in saveMockRecipients: ${error.message}`);
+      throw error;
+    }
+  };
+    
+  // saveMockRecipients(6)
+  export { setUserId, initializeRecipients, saveRecipient, getRecipients, deleteRecipients, clearRecipients, resetToLocalStorage,saveMockRecipients };
 </DOCUMENT>
 
 c:/AutFinanceBank/src/services/socket.js
@@ -3718,13 +5679,70 @@ c:/AutFinanceBank/src/services/transactionService.js
 <DOCUMENT>
 import api from './api';
 
-export const getTransactions = async (params) => {
-  return api.get('/users/transactions', { params });
+const getLastTenTransactions = async () => {
+  try {
+    console.log('transactionService: Fetching last 10 transactions');
+    const response = await api.get('/api/v1/users/transactions', {
+      params: {
+        page: 1,
+        per_page: 10,
+        sort_by: 'Timestamp',
+        order: 'desc',
+      },
+    });
+    console.log('transactionService: Transactions fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('transactionService: Error fetching transactions:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to fetch transactions');
+  }
 };
 
-export const exportTransactions = async (params) => {
-  return api.get('/users/transactions/export', { params, responseType: 'blob' });
+const exportTransactions = async ({ start_date, end_date, transaction_status, transaction_type } = {}) => {
+  try {
+    console.log('transactionService: Exporting transactions', { start_date, end_date, transaction_status, transaction_type });
+    const response = await api.get('/api/v1/users/transactions/export', {
+      params: {
+        start_date,
+        end_date,
+        transaction_status,
+        transaction_type,
+      },
+    });
+    console.log('transactionService: Transactions exported:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('transactionService: Error exporting transactions:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to export transactions');
+  }
 };
+
+export { getLastTenTransactions, exportTransactions };
+</DOCUMENT>
+
+c:/AutFinanceBank/src/services/transferService.js
+<DOCUMENT>
+import api from './api';
+const createTransfer = async (identifier, amount, description) => {
+    try {
+      const requestBody = {
+        ...(identifier.email && { email: identifier.email }),
+        ...(identifier.cnic && { cnic: identifier.cnic }),
+        ...(identifier.username && { username: identifier.username }),
+        Amount: amount,
+        Description: description,
+      };
+      console.log('transferService: Transfer request body:', requestBody);
+      const response = await api.post('/api/v1/users/transfer', requestBody);
+      console.log('transferService: Transfer successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('transferService: Error creating transfer:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Failed to create transfer');
+    }
+  };
+  
+  export { createTransfer };
 </DOCUMENT>
 
 c:/AutFinanceBank/src/services/userService.js
@@ -3745,24 +5763,82 @@ export const getUserDetails = async () => {
   }
 };
 
-export const getUserTransactions = async () => {
+export const getUserTransactions = async (params = {}) => {
   try {
-    const response = await api.get('/api/v1/users/transactions');
-    console.log('UserServices: getUserTransactions response:', response.data);
+    const defaultParams = {
+      page: 1,
+      per_page: 10,
+      sort_by: 'Timestamp',
+      order: 'desc',
+    };
+    const queryParams = { ...defaultParams, ...params };
+    console.log('userService: getUserTransactions params:', queryParams);
+
+    const response = await api.get('/api/v1/users/transactions', {
+      params: queryParams,
+    });
+    console.log('userService: getUserTransactions response:', response.data);
     if (response.data.success) {
-      return response.data.data.map((t) => ({
-        id: `${t.type}-${t.id}`,
-        type: t.type,
-        description: t.type === 'credit' ? `From ${t.senderName}` : `To ${t.recipientName}`,
-        amount: t.amount,
-        date: t.date,
-      }));
+      return response.data;
     }
     throw new Error(response.data.message || 'Failed to fetch transactions');
   } catch (error) {
-    console.error('UserServices: getUserTransactions error:', error.response?.data || error.message);
+    console.error('userService: getUserTransactions error:', error.response?.data || error.message);
     throw error;
   }
+};
+export const checkUniqueness = async (field, value) => {
+  // Email, CNIC, or Username",
+  try {
+    const response = await api.post('/api/v1/users/check_uniqueness', { field, value });
+    console.log('userService: checkUniqueness response:', response.data);
+    if (response.data.success) {
+      return response.data;
+    }
+    throw new Error(response.data.message || 'Failed to check uniqueness');
+  } catch (error) {
+    console.error('userService: checkUniqueness error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+export const sendVerification = async ({ email, content, type , secret_code }) => {
+  try {
+    const response = await api.post('/api/v1/users/send_verification', {
+      email,
+      content,
+      type,
+      secret_code,
+    });
+
+    console.log('userService: sendVerification response:', response.data);
+
+    if (response.data.success) {
+      return response.data;
+    }
+
+    throw new Error(response.data.message || 'Failed to send verification');
+  } catch (error) {
+    console.error('userService: sendVerification error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+export const registerUser = async (userData) => {
+  try {
+    const response = await api.post('/api/v1/users/register', userData);
+    console.log('userService: registerUser response:', response.data);
+    if (response.data.success) {
+      return response.data;
+    }
+    throw new Error(response.data.message || 'Failed to register user');
+  } catch (error) {
+    console.error('userService: registerUser error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+export const loginUser = async (loginId, password) => {
+  return api.post('/users/login', { login_id: loginId, Password: password });
 };
 </DOCUMENT>
 
@@ -3784,8 +5860,8 @@ const { width, height } = Dimensions.get('screen');
 
 // Color palette
 const COLORS = {
-  primary: '#1E3A8A',
-  secondary: '#60A5FA',
+  primary: '#d4a373',
+  secondary: '#EA7300',
   background: '#FFFFFF',
   text: '#333333',
   placeholder: '#A9A9A9', // Ensure this is a visible color
@@ -3991,6 +6067,37 @@ const globalStyles = {
 };
 
 export default globalStyles;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/styles/homeScreenTheme.js
+<DOCUMENT>
+import globalStyles from './globalStyles';
+
+const defaultHomeScreenTheme = {
+  primary: globalStyles.COLORS.primary || '#3498db', // Header, buttons, QR code icon
+  white: globalStyles.COLORS.white || '#fff', // Balance card, avatar background
+  black: globalStyles.COLORS.black || '#2c3e50', // Text, avatar letter
+  secondary: '#7f8c8d', // Balance title, transaction date
+  background: '#fff', // Main container, white section
+  serviceBackground: '#ecf0f1', // Service item background
+  credit: '#2ecc71', // Credit transaction icon/amount
+  debit: '#e74c3c', // Debit transaction icon/amount, error text
+  link: globalStyles.COLORS.primary || '#3498db', // See All, Retry links
+  retryButton: '#3498db', // Retry button background
+  retryButtonText: '#fff', // Retry button text
+  notificationIcon: '#fff', // Notification icon
+};
+
+// Function to create a custom HomeScreen theme
+const createHomeScreenTheme = (customColors = {}) => ({
+  ...defaultHomeScreenTheme,
+  ...customColors,
+});
+
+// Export the default theme (can be overridden by calling createHomeScreenTheme)
+export const homeScreenTheme = createHomeScreenTheme();
+
+export default homeScreenTheme;
 </DOCUMENT>
 
 c:/AutFinanceBank/src/utils/helpers.js

@@ -1,1 +1,0 @@
-console.log('access_token:', await AsyncStorage.getItem('access_token'));

@@ -30,19 +30,21 @@ const TransactionsScreen = () => {
   };
 
   const renderTransaction = ({ item }) => {
-    const isDeposit = !!item.DepositID;
+    const isDeposit = item.TransactionType === 'Deposit';
     const transactionType = isDeposit ? 'Deposit' : 'Transfer';
-    const transactionId = item.DepositID || item.TransferID;
-
+    const transactionId = item.TransactionID;  // Using TransactionID
+  
     return (
       <View style={styles.transaction}>
         <Text style={[styles.transactionIcon, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
           {isDeposit ? '↓' : '↑'}
         </Text>
         <View style={styles.transactionDetails}>
-          <Text style={styles.transactionDescription}>{item.Description || transactionType}</Text>
+          <Text style={styles.transactionDescription}>
+            {item.Description || transactionType}
+          </Text>
           <Text style={styles.transactionDate}>
-            {new Date(item.Timestamp).toLocaleString()}
+            {new Date(item.CreatedAt).toLocaleString()}
           </Text>
         </View>
         <Text style={[styles.transactionAmount, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
@@ -51,6 +53,7 @@ const TransactionsScreen = () => {
       </View>
     );
   };
+  
 
   if (!user) {
     return (
@@ -74,7 +77,11 @@ const TransactionsScreen = () => {
           <FlatList
             data={transactions?.data?.items || []}
             renderItem={renderTransaction}
-            keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
+            keyExtractor={(item, index) => {
+  const id = item?.DepositID ?? item?.TransferID;
+  return id != null ? id.toString() : index.toString();
+}}
+
             onEndReached={() => transactions?.total_pages > page && setPage(page + 1)}
             onEndReachedThreshold={0.5}
           />

@@ -9,3 +9,5 @@ const ScanQRScreen = () => (
 );
 
 export default ScanQRScreen;
+
+

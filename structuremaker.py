@@ -10,8 +10,8 @@ def generate_structure(path, depth=0):
         for item in sorted(os.listdir(path)):
             item_path = os.path.join(path, item)
             if os.path.isdir(item_path):
-                structure += "│   " * depth + "├── " + item + "/\n"
-                structure += generate_structure(item_path, depth + 1)
+                 structure += "│   " * depth + "├── " + item + "/\n"
+                 structure += generate_structure(item_path, depth + 1)
             else:
                 structure += "│   " * depth + "├── " + item + "\n"
     except PermissionError:

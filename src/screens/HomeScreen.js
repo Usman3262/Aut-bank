@@ -41,6 +41,7 @@ const HomeScreen = () => {
   console.log('HomeScreen user keys:', user ? Object.keys(user) : 'undefined');
   console.log('HomeScreen: recipientStorage module:', recipientStorage);
 
+
   const { data: userData, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery(
     ['user', user?.UserID],
     async () => {
@@ -60,6 +61,8 @@ const HomeScreen = () => {
       },
     }
   );
+  
+  
 
   const { data: transactionsResponse, isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery(
     ['transactions', user?.UserID],
@@ -232,21 +235,28 @@ const HomeScreen = () => {
   );
 
   const TransactionItem = ({ item }) => {
-    const isDeposit = !!item.DepositID;
+    const isDeposit = item.TransactionType === 'Deposit';
     const type = isDeposit ? 'credit' : 'debit';
-    const transactionId = item.DepositID || item.TransferID;
-    
-    console.log('HomeScreen: Rendering transaction:', { transactionId, type, Description: item.Description, Amount: item.Amount });
-
+    const transactionId = item.TransactionID;
+  
+    console.log('HomeScreen: Rendering transaction:', {
+      transactionId,
+      type,
+      Description: item.Description,
+      Amount: item.Amount
+    });
+  
     return (
       <View style={styles.transaction}>
         <Text style={[styles.transactionIcon, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
           {type === 'credit' ? '↓' : '↑'}
         </Text>
         <View style={styles.transactionDetails}>
-          <Text style={styles.transactionDescription}>{item.Description || (isDeposit ? 'Deposit' : 'Transfer')}</Text>
+          <Text style={styles.transactionDescription}>
+            {item.Description || (isDeposit ? 'Deposit' : 'Transfer')}
+          </Text>
           <Text style={styles.transactionDate}>
-            {new Date(item.Timestamp).toLocaleString()}
+            {new Date(item.CreatedAt).toLocaleString()}
           </Text>
         </View>
         <Text style={[styles.transactionAmount, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
@@ -255,6 +265,7 @@ const HomeScreen = () => {
       </View>
     );
   };
+  
 
   const RecipientItem = ({ item }) => (
     <TouchableOpacity
@@ -417,7 +428,10 @@ const HomeScreen = () => {
                 data={recipients}
                 horizontal
                 renderItem={RecipientItem}
-                keyExtractor={(item) => item.recipientId.toString()}
+                keyExtractor={(item, index) =>
+  item?.recipientId != null ? item.recipientId.toString() : index.toString()
+}
+
                 showsHorizontalScrollIndicator={false}
               />
             )}
@@ -445,7 +459,11 @@ const HomeScreen = () => {
               <FlatList
                 data={transactionsResponse}
                 renderItem={TransactionItem}
-                keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
+                keyExtractor={(item, index) => {
+  const id = item?.DepositID ?? item?.TransferID;
+  return id != null ? id.toString() : index.toString();
+}}
+
                 scrollEnabled={false}
               />
             )}

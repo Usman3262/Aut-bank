@@ -12,6 +12,7 @@ Directory Structure:
 │   │   │   ├── user1.jpg
 │   │   │   ├── user2.jpg
 │   │   │   ├── user3.jpg
+│   ├── mailbody.js
 ├── context/
 │   ├── APIContext.js
 │   ├── AuthContext.js
@@ -46,11 +47,13 @@ Directory Structure:
 │   ├── WelcomeScreen.js
 │   ├── WithdrawScreen.js
 ├── services/
+│   ├── RecipientsData.js
 │   ├── api.js
-│   ├── authService.js
 │   ├── cardService.js
+│   ├── cloudinaryService.js
 │   ├── loanService.js
 │   ├── mockData.js
+│   ├── recipientStorage.js
 │   ├── socket.js
 │   ├── transactionService.js
 │   ├── transferService.js
@@ -58,6 +61,7 @@ Directory Structure:
 │   ├── withdrawalService.js
 ├── styles/
 │   ├── globalStyles.js
+│   ├── homeScreenTheme.js
 ├── utils/
 │   ├── helpers.js
 │   ├── validators.js
