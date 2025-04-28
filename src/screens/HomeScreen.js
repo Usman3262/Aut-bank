@@ -239,12 +239,12 @@ const HomeScreen = () => {
     const type = isDeposit ? 'credit' : 'debit';
     const transactionId = item.TransactionID;
   
-    console.log('HomeScreen: Rendering transaction:', {
-      transactionId,
-      type,
-      Description: item.Description,
-      Amount: item.Amount
-    });
+    // console.log('HomeScreen: Rendering transaction:', {
+    //   transactionId,
+    //   type,
+    //   Description: item.Description,
+    //   Amount: item.Amount
+    // });
   
     return (
       <View style={styles.transaction}>

@@ -6,7 +6,7 @@ const getLastTenTransactions = async () => {
     const response = await api.get('/api/v1/users/transactions', {
       params: {
         page: 1,
-        per_page: 10,
+        per_page: 30,
         sort_by: 'Timestamp',
         order: 'desc',
       },

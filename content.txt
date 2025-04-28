@@ -342,7 +342,9 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SendScreen from '../screens/SendScreen';
 import DepositScreen from '../screens/DepositScreen';
-import LoanScreen from '../screens/LoanScreen';
+import LoansScreen from '../screens/LoansScreen';
+import ApplyLoanScreen from '../screens/ApplyLoanScreen';
+import LoanPaymentsScreen from '../screens/LoanPaymentsScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import WithdrawScreen from '../screens/WithdrawScreen';
 import CardsScreen from '../screens/CardsScreen';
@@ -518,7 +520,9 @@ const AppNavigator = () => {
             />
             <Stack.Screen name="Send" component={SendScreen} />
             <Stack.Screen name="Deposit" component={DepositScreen} />
-            <Stack.Screen name="Loan" component={LoanScreen} />
+            <Stack.Screen name="Loan" component={LoansScreen} />
+  <Stack.Screen name="ApplyLoan" component={ApplyLoanScreen} />
+  <Stack.Screen name="LoanPayments" component={LoanPaymentsScreen} />
             <Stack.Screen name="Transactions" component={TransactionsScreen} />
             <Stack.Screen name="Withdraw" component={WithdrawScreen} />
             <Stack.Screen name="Cards" component={CardsScreen} />
@@ -535,204 +539,979 @@ const AppNavigator = () => {
 export default AppNavigator;
 </DOCUMENT>
 
-c:/AutFinanceBank/src/screens/CardsScreen.js
+c:/AutFinanceBank/src/screens/ApplyLoanScreen.js
 <DOCUMENT>
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Modal } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useQuery, useMutation } from 'react-query';
 import { AuthContext } from '../context/AuthContext';
-import { getCards, createCard, updateCard, deleteCard } from '../services/cardService';
-import { CardCreateSchema, CardUpdateSchema } from '../utils/validators';
-import { formatDate } from '../utils/helpers';
+import { applyForLoan, getLoanTypes } from '../services/loanService';
 import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
 
-const CardsScreen = () => {
+const ApplyLoanScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
-  const [showModal, setShowModal] = useState(false);
-  const [cardNumber, setCardNumber] = useState('');
-  const [pin, setPin] = useState('');
-  const [expirationDate, setExpirationDate] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
-  const { data: cards, isLoading, refetch } = useQuery('cards', () => getCards({ page: 1, per_page: 10 }), {
-    enabled: !!user,
+  // State for form
+  const [loanData, setLoanData] = useState({
+    LoanTypeID: '',
+    LoanAmount: '',
+    LoanDurationMonths: '',
+    DueDate: '',
   });
+  const [displayDueDate, setDisplayDueDate] = useState('');
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [loanTypeModalVisible, setLoanTypeModalVisible] = useState(false);
 
-  const createMutation = useMutation(createCard, {
-    onSuccess: () => {
-      setShowModal(false);
-      setCardNumber('');
-      setPin('');
-      setExpirationDate('');
-      refetch();
-    },
-    onError: (error) => setErrorMessage(error.message),
-  });
-
-  const updateMutation = useMutation(({ cardId, cardData }) => updateCard(cardId, cardData), {
-    onSuccess: refetch,
-    onError: (error) => setErrorMessage(error.message),
-  });
-
-  const deleteMutation = useMutation(deleteCard, {
-    onSuccess: refetch,
-    onError: (error) => setErrorMessage(error.message),
-  });
-
-  const handleCreateCard = async () => {
-    setErrorMessage('');
-    try {
-      const cardData = { CardNumber: cardNumber, Pin: pin, ExpirationDate: formatDate(expirationDate) };
-      await CardCreateSchema.validate(cardData);
-      createMutation.mutate(cardData);
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  const handleUpdateStatus = async (cardId, status) => {
-    try {
-      await CardUpdateSchema.validate({ Status: status });
-      updateMutation.mutate({ cardId, cardData: { Status: status } });
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  const renderCard = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardText}>Card Number: {item.CardNumber}</Text>
-      <Text style={styles.cardText}>Expiration: {item.ExpirationDate}</Text>
-      <Text style={styles.cardText}>Status: {item.Status}</Text>
-      <View style={styles.cardActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, item.Status === 'Active' && { opacity: 0.5 }]}
-          onPress={() => handleUpdateStatus(item.CardID, 'Active')}
-          disabled={item.Status === 'Active'}
-        >
-          <Text style={styles.actionText}>Activate</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, item.Status === 'Blocked' && { opacity: 0.5 }]}
-          onPress={() => handleUpdateStatus(item.CardID, 'Blocked')}
-          disabled={item.Status === 'Blocked'}
-        >
-          <Text style={styles.actionText}>Block</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => deleteMutation.mutate(item.CardID)}
-        >
-          <Text style={styles.actionText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+  // Fetch loan types
+  const { data: loanTypesData, isLoading: loanTypesLoading, error: loanTypesError } = useQuery(
+    'loanTypes',
+    getLoanTypes,
+    { enabled: !!user?.access_token }
   );
+
+  // Log loan types data for debugging
+  console.log('ApplyLoanScreen: loanTypesData:', loanTypesData);
+
+  // Function to format due date
+  const formatDueDate = (text) => {
+    const cleaned = text.replace(/\D/g, '');
+    if (cleaned.length >= 6) {
+      return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}-${cleaned.slice(6, 8)}`;
+    } else if (cleaned.length >= 4) {
+      return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}`;
+    }
+    return cleaned;
+  };
+
+  const handleDueDateChange = (text) => {
+    const rawDate = text.replace(/\D/g, '').slice(0, 8);
+    let formattedForSubmission = rawDate;
+    if (rawDate.length >= 6) {
+      formattedForSubmission = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+    } else if (rawDate.length >= 4) {
+      formattedForSubmission = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}`;
+    }
+    setLoanData({ ...loanData, DueDate: formattedForSubmission });
+    const formatted = formatDueDate(rawDate);
+    setDisplayDueDate(formatted);
+  };
+
+  // Mutation for applying for a loan
+  const applyMutation = useMutation(applyForLoan, {
+    onSuccess: (data) => {
+      setSuccessMessage(data.message || 'Loan application successful!');
+      setError(null);
+      setLoanData({ LoanTypeID: '', LoanAmount: '', LoanDurationMonths: '', DueDate: '' });
+      setDisplayDueDate('');
+    },
+    onError: (error) => {
+      setError(error.message || 'An error occurred during loan application.');
+      setSuccessMessage(null);
+    },
+  });
+
+  const handleApplyLoan = () => {
+    setError(null);
+    setSuccessMessage(null);
+    applyMutation.mutate({
+      LoanTypeID: parseInt(loanData.LoanTypeID),
+      LoanAmount: parseFloat(loanData.LoanAmount),
+      LoanDurationMonths: parseInt(loanData.LoanDurationMonths),
+      DueDate: loanData.DueDate,
+    });
+  };
 
   if (!user) {
     return (
-      <View style={globalStyles.container}>
-        <Text>Please log in to view cards</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to apply for a loan</Text>
+      </SafeAreaView>
     );
   }
 
-  return (
-    <View style={globalStyles.container}>
-      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
-        Your Cards
-      </Text>
-      {isLoading ? (
-        <Text>Loading cards...</Text>
-      ) : (
-        <FlatList
-          data={cards?.data || []}
-          renderItem={renderCard}
-          keyExtractor={(item) => item.CardID.toString()}
-        />
-      )}
-      <TouchableOpacity
-        style={globalStyles.button}
-        onPress={() => setShowModal(true)}
-      >
-        <Text style={globalStyles.buttonText}>Add New Card</Text>
-      </TouchableOpacity>
-      {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
+  const selectedLoanType = loanTypesData?.data?.items?.find(
+    (type) => type.LoanTypeID === parseInt(loanData.LoanTypeID)
+  );
 
-      <Modal visible={showModal} animationType="slide">
-        <View style={globalStyles.container}>
-          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
-            Add New Card
-          </Text>
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Card Number (16 digits)"
-            keyboardType="numeric"
-            value={cardNumber}
-            onChangeText={setCardNumber}
-            maxLength={16}
-          />
-          <TextInput
-            style={globalStyles.input}
-            placeholder="PIN (4 digits)"
-            keyboardType="numeric"
-            secureTextEntry
-            value={pin}
-            onChangeText={setPin}
-            maxLength={4}
-          />
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Expiration Date (YYYY-MM-DD)"
-            value={expirationDate}
-            onChangeText={setExpirationDate}
-          />
-          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
-          <TouchableOpacity
-            style={[globalStyles.button, createMutation.isLoading && { opacity: 0.7 }]}
-            onPress={handleCreateCard}
-            disabled={createMutation.isLoading}
-          >
-            <Text style={globalStyles.buttonText}>
-              {createMutation.isLoading ? 'Adding...' : 'Add Card'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={globalStyles.buttonOutline}
-            onPress={() => setShowModal(false)}
-          >
-            <Text style={globalStyles.buttonOutlineText}>Cancel</Text>
-          </TouchableOpacity>
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={homeScreenTheme.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Apply for Loan</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <View style={styles.formContainer}>
+        {loanTypesLoading ? (
+          <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+        ) : loanTypesError ? (
+          <Text style={styles.errorText}>{loanTypesError.message}</Text>
+        ) : !loanTypesData?.data?.items || loanTypesData.data.items.length === 0 ? (
+          <Text style={styles.errorText}>No loan types available</Text>
+        ) : (
+          <>
+            {/* Log Box for Loan Types */}
+            <ScrollView style={styles.logBox}>
+              <Text style={styles.logTitle}>Loan Types Data:</Text>
+              {loanTypesData.data.items.map((type, index) => (
+                <View key={type.LoanTypeID} style={styles.logEntry}>
+                  <Text style={styles.logText}>
+                    {index + 1}. {type.LoanTypeName}
+                  </Text>
+                  <Text style={styles.logSubText}>
+                    ID: {type.LoanTypeID}
+                  </Text>
+                  <Text style={styles.logSubText}>
+                    Interest Rate: {type.DefaultInterestRate}%
+                  </Text>
+                  <Text style={styles.logSubText}>
+                    Late Fee/Day: ${type.LatePaymentFeePerDay}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.dropdown}
+              onPress={() => setLoanTypeModalVisible(true)}
+            >
+              <Text style={styles.dropdownText}>
+                {selectedLoanType ? selectedLoanType.LoanTypeName : 'Select Loan Type'}
+              </Text>
+              <Icon name="arrow-drop-down" size={20} color={homeScreenTheme.black} />
+            </TouchableOpacity>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Loan Amount"
+              value={loanData.LoanAmount}
+              onChangeText={(text) => setLoanData({ ...loanData, LoanAmount: text })}
+              keyboardType="numeric"
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Loan Duration (Months)"
+              value={loanData.LoanDurationMonths}
+              onChangeText={(text) => setLoanData({ ...loanData, LoanDurationMonths: text })}
+              keyboardType="numeric"
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Due Date (YYYY-MM-DD)"
+              value={displayDueDate}
+              onChangeText={handleDueDateChange}
+              keyboardType="numeric"
+              maxLength={10}
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+
+            {applyMutation.isLoading ? (
+              <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+            ) : (
+              <>
+                {error && <Text style={styles.errorText}>{error}</Text>}
+                {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handleApplyLoan}
+                  disabled={applyMutation.isLoading}
+                >
+                  <Text style={styles.submitButtonText}>Apply</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+      </View>
+
+      {/* Loan Type Modal */}
+      <Modal transparent visible={loanTypeModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Loan Type</Text>
+            {loanTypesData?.data?.items?.map((type) => (
+              <TouchableOpacity
+                key={type.LoanTypeID}
+                style={styles.dropdownOption}
+                onPress={() => {
+                  setLoanData({ ...loanData, LoanTypeID: type.LoanTypeID.toString() });
+                  setLoanTypeModalVisible(false);
+                }}
+              >
+                <Text style={styles.dropdownOptionText}>{type.LoanTypeName}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={() => setLoanTypeModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: globalStyles.COLORS.gray,
-    borderRadius: 8,
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
     padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  formContainer: {
+    padding: 16,
+    flex: 1,
+  },
+  logBox: {
+    maxHeight: 150,
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  logTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+    marginBottom: 8,
+  },
+  logEntry: {
+    marginBottom: 12,
+  },
+  logText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: homeScreenTheme.black,
+  },
+  logSubText: {
+    fontSize: 12,
+    color: homeScreenTheme.secondary,
+    marginLeft: 16,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    backgroundColor: globalStyles.COLORS.white,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+  },
+  dropdownOption: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: globalStyles.COLORS.gray,
+    width: '100%',
+    alignItems: 'center',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: globalStyles.COLORS.white,
+  },
+  loader: {
+    marginVertical: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  successText: {
+    fontSize: 14,
+    color: homeScreenTheme.primary,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  submitButton: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+    marginBottom: 12,
+  },
+  modalButtonCancel: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: globalStyles.COLORS.gray,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+});
+
+export default ApplyLoanScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/CardsScreen.js
+<DOCUMENT>
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { getCards, createCard, updateCard, deleteCard } from '../services/cardService';
+import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
+
+const CardsScreen = () => {
+  const { user } = useContext(AuthContext);
+  const queryClient = useQueryClient();
+
+  // State for pagination and sorting
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [sortBy, setSortBy] = useState('CardID');
+  const [order, setOrder] = useState('asc');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [modalType, setModalType] = useState(''); // 'sortBy' or 'order'
+
+  // State for modals and forms
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState(null);
+  const [newCard, setNewCard] = useState({ CardNumber: '', Pin: '', ExpirationDate: '' });
+  const [displayExpirationDate, setDisplayExpirationDate] = useState(''); // For formatted date display
+  const [updateCardData, setUpdateCardData] = useState({ Pin: '', Status: '' });
+  const [error, setError] = useState(null);
+
+  // Function to format expiration date
+  const formatExpirationDate = (text) => {
+    // Remove non-digits
+    const cleaned = text.replace(/\D/g, '');
+    // Format as YYYY-MM-DD
+    if (cleaned.length >= 6) {
+      return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}-${cleaned.slice(6, 8)}`;
+    } else if (cleaned.length >= 4) {
+      return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}`;
+    }
+    return cleaned;
+  };
+
+  const handleExpirationDateChange = (text) => {
+    // Remove non-digits for raw value
+    const rawDate = text.replace(/\D/g, '').slice(0, 8); // Limit to 8 digits (YYYYMMDD)
+    // Format as YYYY-MM-DD for submission
+    let formattedForSubmission = rawDate;
+    if (rawDate.length >= 6) {
+      formattedForSubmission = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+    } else if (rawDate.length >= 4) {
+      formattedForSubmission = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}`;
+    }
+    setNewCard({ ...newCard, ExpirationDate: formattedForSubmission });
+    // Format for display
+    const formatted = formatExpirationDate(rawDate);
+    setDisplayExpirationDate(formatted);
+  };
+
+  // Fetch cards
+  const { data, isLoading, error: fetchError, refetch } = useQuery(
+    ['cards', page, perPage, sortBy, order],
+    () => getCards({ page, per_page: perPage, sort_by: sortBy, order }),
+    { enabled: !!user?.access_token }
+  );
+
+  // Mutations
+  const createMutation = useMutation(createCard, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('cards');
+      setAddModalVisible(false);
+      setNewCard({ CardNumber: '', Pin: '', ExpirationDate: '' });
+      setDisplayExpirationDate(''); // Reset display
+    },
+    onError: (error) => setError(error.message),
+  });
+
+  const updateMutation = useMutation(({ card_id, updates }) => updateCard(card_id, updates), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('cards');
+      setUpdateModalVisible(false);
+      setUpdateCardData({ Pin: '', Status: '' });
+    },
+    onError: (error) => setError(error.message),
+  });
+
+  const deleteMutation = useMutation(deleteCard, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('cards');
+      setDeleteModalVisible(false);
+    },
+    onError: (error) => setError(error.message),
+  });
+
+  const handleAddCard = () => {
+    setError(null);
+    createMutation.mutate(newCard);
+  };
+
+  const handleUpdateCard = () => {
+    setError(null);
+    updateMutation.mutate({ card_id: selectedCardId, updates: updateCardData });
+  };
+
+  const handleDeleteCard = () => {
+    setError(null);
+    deleteMutation.mutate(selectedCardId);
+  };
+
+  const openUpdateModal = (card) => {
+    setSelectedCardId(card.CardID);
+    setUpdateCardData({ Pin: '', Status: card.Status || '' });
+    setUpdateModalVisible(true);
+  };
+
+  const openDeleteModal = (cardId) => {
+    setSelectedCardId(cardId);
+    setDeleteModalVisible(true);
+  };
+
+  const openSortModal = (type) => {
+    setModalType(type);
+    if (type === 'sortBy') setSortModalVisible(true);
+    else setOrderModalVisible(true);
+  };
+
+  const handleSortSelect = (value) => {
+    setSortBy(value);
+    setSortModalVisible(false);
+  };
+
+  const handleOrderSelect = (value) => {
+    setOrder(value);
+    setOrderModalVisible(false);
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to view your cards</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Cards</Text>
+        <TouchableOpacity onPress={() => setAddModalVisible(true)}>
+          <Icon name="add" size={24} color={homeScreenTheme.white} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.filters}>
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Sort By:</Text>
+          <TouchableOpacity
+            style={styles.dropdown}
+            onPress={() => openSortModal('sortBy')}
+          >
+            <Text style={styles.dropdownText}>{sortBy}</Text>
+            <Icon name="arrow-drop-down" size={20} color={homeScreenTheme.black} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Order:</Text>
+          <TouchableOpacity
+            style={styles.dropdown}
+            onPress={() => openSortModal('order')}
+          >
+            <Text style={styles.dropdownText}>{order === 'asc' ? 'Ascending' : 'Descending'}</Text>
+            <Icon name="arrow-drop-down" size={20} color={homeScreenTheme.black} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+      ) : fetchError ? (
+        <Text style={styles.errorText}>{fetchError.message}</Text>
+      ) : !data?.data?.items || data.data.items.length === 0 ? (
+        <Text style={styles.noDataText}>No cards available</Text>
+      ) : (
+        <>
+          <FlatList
+            data={data.data.items}
+            keyExtractor={(item) => item.CardID.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.cardItem}>
+                <View style={styles.cardDetails}>
+                  <Text style={styles.cardText}>Card: {item.CardNumber}</Text>
+                  <Text style={styles.cardSubText}>Expires: {item.ExpirationDate}</Text>
+                  <Text style={styles.cardSubText}>Status: {item.Status}</Text>
+                </View>
+                <View style={styles.cardActions}>
+                  <TouchableOpacity onPress={() => openUpdateModal(item)}>
+                    <Icon name="edit" size={20} color={homeScreenTheme.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => openDeleteModal(item.CardID)} style={styles.actionButton}>
+                    <Icon name="delete" size={20} color={homeScreenTheme.debit} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
+          <View style={styles.pagination}>
+            <TouchableOpacity
+              disabled={page === 1}
+              onPress={() => setPage(page - 1)}
+              style={[styles.pageButton, page === 1 && styles.disabledButton]}
+            >
+              <Text style={styles.pageButtonText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageInfo}>
+              Page {data.page} of {data.total_pages}
+            </Text>
+            <TouchableOpacity
+              disabled={page === data.total_pages}
+              onPress={() => setPage(page + 1)}
+              style={[styles.pageButton, page === data.total_pages && styles.disabledButton]}
+            >
+              <Text style={styles.pageButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
+      {/* Sort By Modal */}
+      <Modal transparent visible={sortModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Sort By</Text>
+            {['CardID', 'ExpirationDate', 'Status', 'CardNumber'].map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={styles.dropdownOption}
+                onPress={() => handleSortSelect(option)}
+              >
+                <Text style={styles.dropdownOptionText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={() => setSortModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Order Modal */}
+      <Modal transparent visible={orderModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Order</Text>
+            {['asc', 'desc'].map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={styles.dropdownOption}
+                onPress={() => handleOrderSelect(option)}
+              >
+                <Text style={styles.dropdownOptionText}>{option === 'asc' ? 'Ascending' : 'Descending'}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={() => setOrderModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Card Modal */}
+      <Modal transparent visible={addModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add New Card</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Card Number (16 digits)"
+              value={newCard.CardNumber}
+              onChangeText={(text) => setNewCard({ ...newCard, CardNumber: text })}
+              keyboardType="numeric"
+              maxLength={16}
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Pin (4 digits)"
+              value={newCard.Pin}
+              onChangeText={(text) => setNewCard({ ...newCard, Pin: text })}
+              keyboardType="numeric"
+              maxLength={4}
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Expiration Date (YYYY-MM-DD)"
+              value={displayExpirationDate}
+              onChangeText={handleExpirationDateChange}
+              keyboardType="numeric"
+              maxLength={10} // YYYY-MM-DD format
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonCancel}
+                onPress={() => {
+                  setAddModalVisible(false);
+                  setNewCard({ CardNumber: '', Pin: '', ExpirationDate: '' });
+                  setDisplayExpirationDate('');
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonConfirm} onPress={handleAddCard}>
+                <Text style={styles.modalButtonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Update Card Modal */}
+      <Modal transparent visible={updateModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Update Card</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="New Pin (4 digits)"
+              value={updateCardData.Pin}
+              onChangeText={(text) => setUpdateCardData({ ...updateCardData, Pin: text })}
+              keyboardType="numeric"
+              maxLength={4}
+              placeholderTextColor={globalStyles.COLORS.black}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Status (e.g., Active, Inactive)"
+              value={updateCardData.Status}
+              onChangeText={(text) => setUpdateCardData({ ...updateCardData, Status: text })}
+            />
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonCancel}
+                onPress={() => setUpdateModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonConfirm} onPress={handleUpdateCard}>
+                <Text style={styles.modalButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal transparent visible={deleteModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirm Deletion</Text>
+            <Text style={styles.modalMessage}>Are you sure you want to delete this card?</Text>
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonCancel}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonConfirm} onPress={handleDeleteCard}>
+                <Text style={styles.modalButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  filters: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  filterItem: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  filterLabel: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+    marginBottom: 4,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 8,
+    backgroundColor: homeScreenTheme.white,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+  },
+  dropdownOption: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: globalStyles.COLORS.gray,
+    width: '100%',
+    alignItems: 'center',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  cardItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 16,
     marginVertical: 8,
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  cardDetails: {
+    flex: 1,
   },
   cardText: {
-    fontSize: globalStyles.FONT_SIZES.medium,
-    color: globalStyles.COLORS.text,
+    fontSize: 16,
+    fontWeight: '600',
+    color: homeScreenTheme.black,
+  },
+  cardSubText: {
+    fontSize: 12,
+    color: homeScreenTheme.secondary,
+    marginTop: 4,
   },
   cardActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
   },
   actionButton: {
-    backgroundColor: globalStyles.COLORS.primary,
-    padding: 8,
-    borderRadius: 5,
+    marginLeft: 12,
   },
-  actionText: {
-    color: globalStyles.COLORS.white,
-    fontSize: globalStyles.FONT_SIZES.small,
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  pageButton: {
+    padding: 8,
+    backgroundColor: homeScreenTheme.primary,
+    borderRadius: 8,
+  },
+  disabledButton: {
+    backgroundColor: globalStyles.COLORS.gray,
+  },
+  pageButtonText: {
+    fontSize: 14,
+    color: homeScreenTheme.white,
+  },
+  pageInfo: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    width: '100%',
+    backgroundColor: globalStyles.COLORS.white,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButtonCancel: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: globalStyles.COLORS.gray,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  modalButtonConfirm: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: homeScreenTheme.primary,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
   },
 });
 
@@ -741,14 +1520,207 @@ export default CardsScreen;
 
 c:/AutFinanceBank/src/screens/DepositScreen.js
 <DOCUMENT>
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useContext, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Animated,
+  ActivityIndicator,
+} from 'react-native';
+import { AuthContext } from '../context/AuthContext';
+import globalStyles from '../styles/globalStyles';
 
-const DepositScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>Deposit Screen</Text>
-  </View>
-);
+const DepositScreen = () => {
+  const { user } = useContext(AuthContext);
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('Waiting for Approval...');
+  const [modalSuccess, setModalSuccess] = useState(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const validateInputs = () => {
+    if (!description.trim()) {
+      setError('Please enter a description');
+      return false;
+    }
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setError('Please enter a valid amount greater than 0');
+      return false;
+    }
+    return true;
+  };
+
+  const showModal = (message, success = null) => {
+    setModalMessage(message);
+    setModalSuccess(success);
+    setModalVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+    // Auto-close after 3 seconds (realistic delay)
+    setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setModalVisible(false));
+    }, 3000);
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (!user?.access_token) {
+      setError('Please log in to make a deposit');
+      return;
+    }
+    if (!validateInputs()) return;
+
+    try {
+      showModal('Waiting for Approval...');
+      showModal('Deposit submitted successfully! Awaiting approval.', true);
+      setAmount('');
+      setDescription('');
+    } catch (error) {
+      showModal(error.message || 'Failed to submit deposit', false);
+    }
+  };
+
+  if (!user) {
+    return (
+      <View style={globalStyles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to make a deposit</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={globalStyles.container}>
+      <Text style={[globalStyles.textXLargeBlack, styles.title]}>Make a Deposit</Text>
+
+      <View style={styles.formContainer}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={[styles.input, error && description === '' ? styles.inputError : null]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="e.g., For savings"
+          placeholderTextColor={globalStyles.COLORS.gray}
+        />
+
+        <Text style={styles.label}>Amount ($)</Text>
+        <TextInput
+          style={[styles.input, error && !parseFloat(amount) ? styles.inputError : null]}
+          value={amount}
+          onChangeText={(text) => setAmount(text.replace(/[^0-9.]/g, ''))}
+          placeholder="e.g., 100.00"
+          placeholderTextColor={globalStyles.COLORS.gray}
+          keyboardType="numeric"
+        />
+
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        <TouchableOpacity style={globalStyles.button} onPress={handleSubmit}>
+          <Text style={globalStyles.buttonText}>Submit Deposit</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        transparent
+        visible={modalVisible}
+        animationType="none"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
+            <Text style={styles.modalText}>{modalMessage}</Text>
+            {modalSuccess === null ? (
+              <ActivityIndicator size="small" color={globalStyles.COLORS.gray} />
+            ) : (
+              <Text style={[styles.modalStatus, modalSuccess ? styles.modalSuccess : styles.modalError]}>
+                {modalSuccess ? 'Success' : 'Error'}
+              </Text>
+            )}
+          </Animated.View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  title: {
+    marginBottom: globalStyles.SPACING.large,
+    textAlign: 'center',
+  },
+  formContainer: {
+    width: '90%',
+    alignSelf: 'center',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: '#fff',
+  },
+  inputError: {
+    borderColor: '#e74c3c',
+  },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalStatus: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalSuccess: {
+    color: '#2ecc71',
+  },
+  modalError: {
+    color: '#e74c3c',
+  },
+});
 
 export default DepositScreen;
 </DOCUMENT>
@@ -986,17 +1958,179 @@ export default ForgotPasswordScreen;
 
 c:/AutFinanceBank/src/screens/HistoryScreen.js
 <DOCUMENT>
-// screens/BillsScreen.js
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useContext } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { useQuery } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { getUserAnalyticsSummary } from '../services/userService';
+import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
 
-const BillsScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>history Screen</Text>
-  </View>
-);
+const HistoryScreen = () => {
+  const { user } = useContext(AuthContext);
 
-export default BillsScreen;
+  // Fetch user analytics summary
+  const { data, isLoading, error: fetchError } = useQuery(
+    'userAnalyticsSummary',
+    getUserAnalyticsSummary,
+    { enabled: !!user?.access_token }
+  );
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to view your history</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>History</Text>
+      </View>
+
+      <ScrollView style={styles.content}>
+        {isLoading ? (
+          <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+        ) : fetchError ? (
+          <Text style={styles.errorText}>{fetchError.message || 'Error fetching analytics summary'}</Text>
+        ) : !data?.data ? (
+          <Text style={styles.noDataText}>No analytics data available</Text>
+        ) : (
+          <>
+            {/* Current Balance Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Current Balance</Text>
+              <View style={styles.card}>
+                <Text style={styles.cardValue}>${data.data.current_balance.toLocaleString()}</Text>
+              </View>
+            </View>
+
+            {/* Transactions Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Transactions</Text>
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>Total Count: <Text style={styles.cardValue}>{data.data.transactions.total_count}</Text></Text>
+                <Text style={styles.cardLabel}>Total Volume: <Text style={styles.cardValue}>${data.data.transactions.total_volume.toLocaleString()}</Text></Text>
+                <Text style={styles.cardLabel}>Average Amount: <Text style={styles.cardValue}>${Math.round(data.data.transactions.average_amount).toLocaleString()}</Text></Text>
+                <Text style={styles.cardSubTitle}>Deposits</Text>
+                <Text style={styles.cardSubLabel}>Count: <Text style={styles.cardValue}>{data.data.transactions.deposits.count}</Text></Text>
+                <Text style={styles.cardSubLabel}>Amount: <Text style={styles.cardValue}>${data.data.transactions.deposits.amount.toLocaleString()}</Text></Text>
+                <Text style={styles.cardSubTitle}>Transfers Sent</Text>
+                <Text style={styles.cardSubLabel}>Count: <Text style={styles.cardValue}>{data.data.transactions.transfers_sent.count}</Text></Text>
+                <Text style={styles.cardSubLabel}>Amount: <Text style={styles.cardValue}>${data.data.transactions.transfers_sent.amount.toLocaleString()}</Text></Text>
+                <Text style={styles.cardSubTitle}>Transfers Received</Text>
+                <Text style={styles.cardSubLabel}>Count: <Text style={styles.cardValue}>{data.data.transactions.transfers_received.count}</Text></Text>
+                <Text style={styles.cardSubLabel}>Amount: <Text style={styles.cardValue}>${data.data.transactions.transfers_received.amount.toLocaleString()}</Text></Text>
+                <Text style={styles.cardSubTitle}>Withdrawals</Text>
+                <Text style={styles.cardSubLabel}>Count: <Text style={styles.cardValue}>{data.data.transactions.withdrawals.count}</Text></Text>
+                <Text style={styles.cardSubLabel}>Amount: <Text style={styles.cardValue}>${data.data.transactions.withdrawals.amount.toLocaleString()}</Text></Text>
+              </View>
+            </View>
+
+            {/* Loans Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Loans</Text>
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>Total Approved Amount: <Text style={styles.cardValue}>${data.data.loans.total_approved_amount.toLocaleString()}</Text></Text>
+                <Text style={styles.cardLabel}>Total Approved Count: <Text style={styles.cardValue}>{data.data.loans.total_approved_count}</Text></Text>
+                <Text style={styles.cardLabel}>Pending Count: <Text style={styles.cardValue}>{data.data.loans.pending_count}</Text></Text>
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+    marginBottom: 12,
+  },
+  card: {
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    padding: 16,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+  },
+  cardLabel: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+    marginBottom: 8,
+  },
+  cardSubTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: homeScreenTheme.primary,
+    marginVertical: 8,
+  },
+  cardSubLabel: {
+    fontSize: 12,
+    color: homeScreenTheme.secondary,
+    marginBottom: 4,
+    marginLeft: 8,
+  },
+  cardValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: homeScreenTheme.black,
+  },
+  loader: {
+    marginVertical: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+});
+
+export default HistoryScreen;
 </DOCUMENT>
 
 c:/AutFinanceBank/src/screens/HomeScreen.js
@@ -1044,6 +2178,7 @@ const HomeScreen = () => {
   console.log('HomeScreen user keys:', user ? Object.keys(user) : 'undefined');
   console.log('HomeScreen: recipientStorage module:', recipientStorage);
 
+
   const { data: userData, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery(
     ['user', user?.UserID],
     async () => {
@@ -1063,6 +2198,8 @@ const HomeScreen = () => {
       },
     }
   );
+  
+  
 
   const { data: transactionsResponse, isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery(
     ['transactions', user?.UserID],
@@ -1235,21 +2372,28 @@ const HomeScreen = () => {
   );
 
   const TransactionItem = ({ item }) => {
-    const isDeposit = !!item.DepositID;
+    const isDeposit = item.TransactionType === 'Deposit';
     const type = isDeposit ? 'credit' : 'debit';
-    const transactionId = item.DepositID || item.TransferID;
-    
-    console.log('HomeScreen: Rendering transaction:', { transactionId, type, Description: item.Description, Amount: item.Amount });
-
+    const transactionId = item.TransactionID;
+  
+    console.log('HomeScreen: Rendering transaction:', {
+      transactionId,
+      type,
+      Description: item.Description,
+      Amount: item.Amount
+    });
+  
     return (
       <View style={styles.transaction}>
         <Text style={[styles.transactionIcon, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
           {type === 'credit' ? '↓' : '↑'}
         </Text>
         <View style={styles.transactionDetails}>
-          <Text style={styles.transactionDescription}>{item.Description || (isDeposit ? 'Deposit' : 'Transfer')}</Text>
+          <Text style={styles.transactionDescription}>
+            {item.Description || (isDeposit ? 'Deposit' : 'Transfer')}
+          </Text>
           <Text style={styles.transactionDate}>
-            {new Date(item.Timestamp).toLocaleString()}
+            {new Date(item.CreatedAt).toLocaleString()}
           </Text>
         </View>
         <Text style={[styles.transactionAmount, { color: type === 'credit' ? homeScreenTheme.credit : homeScreenTheme.debit }]}>
@@ -1258,6 +2402,7 @@ const HomeScreen = () => {
       </View>
     );
   };
+  
 
   const RecipientItem = ({ item }) => (
     <TouchableOpacity
@@ -1420,7 +2565,10 @@ const HomeScreen = () => {
                 data={recipients}
                 horizontal
                 renderItem={RecipientItem}
-                keyExtractor={(item) => item.recipientId.toString()}
+                keyExtractor={(item, index) =>
+  item?.recipientId != null ? item.recipientId.toString() : index.toString()
+}
+
                 showsHorizontalScrollIndicator={false}
               />
             )}
@@ -1448,7 +2596,11 @@ const HomeScreen = () => {
               <FlatList
                 data={transactionsResponse}
                 renderItem={TransactionItem}
-                keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
+                keyExtractor={(item, index) => {
+  const id = item?.DepositID ?? item?.TransferID;
+  return id != null ? id.toString() : index.toString();
+}}
+
                 scrollEnabled={false}
               />
             )}
@@ -1606,247 +2758,651 @@ const styles = StyleSheet.create({
 export default HomeScreen;
 </DOCUMENT>
 
-c:/AutFinanceBank/src/screens/LoanScreen.js
+c:/AutFinanceBank/src/screens/LoanPaymentsScreen.js
 <DOCUMENT>
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Modal } from 'react-native';
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useQuery, useMutation } from 'react-query';
 import { AuthContext } from '../context/AuthContext';
-import { applyForLoan, getLoanTypes, getLoans, makeLoanPayment } from '../services/loanService';
-import { LoanApplySchema, LoanPaymentCreateSchema } from '../utils/validators';
-import { formatCurrency, formatDate } from '../utils/helpers';
+import { getLoanPayments, recordLoanPayment } from '../services/loanService';
 import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
 
-const LoanScreen = () => {
+const LoanPaymentsScreen = ({ route, navigation }) => {
   const { user } = useContext(AuthContext);
-  const [showApplyModal, setShowApplyModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [loanTypeId, setLoanTypeId] = useState('');
-  const [loanAmount, setLoanAmount] = useState('');
-  const [loanDuration, setLoanDuration] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [paymentLoanId, setPaymentLoanId] = useState(null);
+  const { loanId } = route.params;
+
+  // State for pagination
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+
+  // State for payment form
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
-  const { data: loanTypes, isLoading: typesLoading } = useQuery('loanTypes', getLoanTypes, {
-    enabled: !!user,
-  });
+  // Fetch loan payments
+  const { data, isLoading, error: fetchError, refetch } = useQuery(
+    ['loanPayments', loanId, page, perPage],
+    () => getLoanPayments({ loan_id: loanId, page, per_page: perPage }),
+    { enabled: !!user?.access_token }
+  );
 
-  const { data: loans, isLoading: loansLoading, refetch } = useQuery('loans', () => getLoans({ page: 1, per_page: 10 }), {
-    enabled: !!user,
-  });
-
-  const applyMutation = useMutation(applyForLoan, {
-    onSuccess: () => {
-      setShowApplyModal(false);
-      setLoanTypeId('');
-      setLoanAmount('');
-      setLoanDuration('');
-      setDueDate('');
-      refetch();
-    },
-    onError: (error) => setErrorMessage(error.message),
-  });
-
-  const paymentMutation = useMutation(makeLoanPayment, {
-    onSuccess: () => {
-      setShowPaymentModal(false);
-      setPaymentLoanId(null);
+  // Mutation for recording a payment
+  const paymentMutation = useMutation(recordLoanPayment, {
+    onSuccess: (data) => {
+      setSuccessMessage(data.message || 'Payment recorded successfully!');
+      setError(null);
       setPaymentAmount('');
       refetch();
     },
-    onError: (error) => setErrorMessage(error.message),
+    onError: (error) => {
+      setError(error.message || 'An error occurred while recording the payment.');
+      setSuccessMessage(null);
+    },
   });
 
-  const handleApplyLoan = async () => {
-    setErrorMessage('');
-    try {
-      const loanData = {
-        LoanTypeID: parseInt(loanTypeId),
-        LoanAmount: parseFloat(loanAmount),
-        LoanDurationMonths: parseInt(loanDuration),
-        DueDate: formatDate(dueDate),
-      };
-      await LoanApplySchema.validate(loanData);
-      applyMutation.mutate(loanData);
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
+  const handleRecordPayment = () => {
+    setError(null);
+    setSuccessMessage(null);
+    paymentMutation.mutate({
+      LoanID: loanId,
+      PaymentAmount: parseFloat(paymentAmount),
+    });
   };
-
-  const handleMakePayment = async () => {
-    setErrorMessage('');
-    try {
-      const paymentData = {
-        LoanID: paymentLoanId,
-        PaymentAmount: parseFloat(paymentAmount),
-      };
-      await LoanPaymentCreateSchema.validate(paymentData);
-      paymentMutation.mutate(paymentData);
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  const renderLoan = ({ item }) => (
-    <View style={styles.loan}>
-      <Text style={styles.loanText}>Type: {item.LoanTypeName}</Text>
-      <Text style={styles.loanText}>Amount: {formatCurrency(item.LoanAmount)}</Text>
-      <Text style={styles.loanText}>Status: {item.LoanStatus}</Text>
-      <Text style={styles.loanText}>Due: {item.DueDate}</Text>
-      <TouchableOpacity
-        style={styles.actionButton}
-        onPress={() => {
-          setPaymentLoanId(item.LoanID);
-          setShowPaymentModal(true);
-        }}
-      >
-        <Text style={styles.actionText}>Make Payment</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   if (!user) {
     return (
-      <View style={globalStyles.container}>
-        <Text>Please log in to manage loans</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to view loan payments</Text>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={globalStyles.container}>
-      <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
-        Loans
-      </Text>
-      {loansLoading ? (
-        <Text>Loading loans...</Text>
-      ) : (
-        <FlatList
-          data={loans?.data || []}
-          renderItem={renderLoan}
-          keyExtractor={(item) => item.LoanID.toString()}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={homeScreenTheme.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Loan Payments (ID: {loanId})</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Payment Amount"
+          value={paymentAmount}
+          onChangeText={setPaymentAmount}
+          keyboardType="numeric"
+          placeholderTextColor={globalStyles.COLORS.black}
         />
+        {paymentMutation.isLoading ? (
+          <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+        ) : (
+          <>
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleRecordPayment}
+              disabled={paymentMutation.isLoading}
+            >
+              <Text style={styles.submitButtonText}>Record Payment</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+      ) : fetchError ? (
+        <Text style={styles.errorText}>{fetchError.message}</Text>
+      ) : !data?.data?.items || data.data.items.length === 0 ? (
+        <Text style={styles.noDataText}>No payments available</Text>
+      ) : (
+        <>
+          <FlatList
+            data={data.data.items}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.paymentItem}>
+                <Text style={styles.paymentText}>Amount: {item.PaymentAmount}</Text>
+                <Text style={styles.paymentSubText}>Date: {item.PaymentDate}</Text>
+              </View>
+            )}
+          />
+          <View style={styles.pagination}>
+            <TouchableOpacity
+              disabled={page === 1}
+              onPress={() => setPage(page - 1)}
+              style={[styles.pageButton, page === 1 && styles.disabledButton]}
+            >
+              <Text style={styles.pageButtonText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageInfo}>
+              Page {data.page} of {data.total_pages}
+            </Text>
+            <TouchableOpacity
+              disabled={page === data.total_pages}
+              onPress={() => setPage(page + 1)}
+              style={[styles.pageButton, page === data.total_pages && styles.disabledButton]}
+            >
+              <Text style={styles.pageButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
-      <TouchableOpacity
-        style={globalStyles.button}
-        onPress={() => setShowApplyModal(true)}
-      >
-        <Text style={globalStyles.buttonText}>Apply for Loan</Text>
-      </TouchableOpacity>
-      {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
-
-      <Modal visible={showApplyModal} animationType="slide">
-        <View style={globalStyles.container}>
-          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
-            Apply for Loan
-          </Text>
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Loan Type ID"
-            keyboardType="numeric"
-            value={loanTypeId}
-            onChangeText={setLoanTypeId}
-          />
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Loan Amount"
-            keyboardType="numeric"
-            value={loanAmount}
-            onChangeText={setLoanAmount}
-          />
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Duration (Months)"
-            keyboardType="numeric"
-            value={loanDuration}
-            onChangeText={setLoanDuration}
-          />
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Due Date (YYYY-MM-DD)"
-            value={dueDate}
-            onChangeText={setDueDate}
-          />
-          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
-          <TouchableOpacity
-            style={[globalStyles.button, applyMutation.isLoading && { opacity: 0.7 }]}
-            onPress={handleApplyLoan}
-            disabled={applyMutation.isLoading}
-          >
-            <Text style={globalStyles.buttonText}>
-              {applyMutation.isLoading ? 'Applying...' : 'Apply'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={globalStyles.buttonOutline}
-            onPress={() => setShowApplyModal(false)}
-          >
-            <Text style={globalStyles.buttonOutlineText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      <Modal visible={showPaymentModal} animationType="slide">
-        <View style={globalStyles.container}>
-          <Text style={[globalStyles.textXLargeBlack, { marginBottom: globalStyles.SPACING.large }]}>
-            Make Loan Payment
-          </Text>
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Payment Amount"
-            keyboardType="numeric"
-            value={paymentAmount}
-            onChangeText={setPaymentAmount}
-          />
-          {errorMessage ? <Text style={globalStyles.textError}>{errorMessage}</Text> : null}
-          <TouchableOpacity
-            style={[globalStyles.button, paymentMutation.isLoading && { opacity: 0.7 }]}
-            onPress={handleMakePayment}
-            disabled={paymentMutation.isLoading}
-          >
-            <Text style={globalStyles.buttonText}>
-              {paymentMutation.isLoading ? 'Processing...' : 'Pay'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={globalStyles.buttonOutline}
-            onPress={() => setShowPaymentModal(false)}
-          >
-            <Text style={globalStyles.buttonOutlineText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  loan: {
-    backgroundColor: globalStyles.COLORS.gray,
-    borderRadius: 8,
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
     padding: 16,
-    marginVertical: 8,
-  },
-  loanText: {
-    fontSize: globalStyles.FONT_SIZES.medium,
-    color: globalStyles.COLORS.text,
-  },
-  actionButton: {
-    backgroundColor: globalStyles.COLORS.primary,
-    padding: 8,
-    borderRadius: 5,
-    marginTop: 8,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  actionText: {
-    color: globalStyles.COLORS.white,
-    fontSize: globalStyles.FONT_SIZES.small,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  formContainer: {
+    padding: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: globalStyles.COLORS.white,
+  },
+  loader: {
+    marginVertical: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  successText: {
+    fontSize: 14,
+    color: homeScreenTheme.primary,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  submitButton: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+  paymentItem: {
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  paymentText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: homeScreenTheme.black,
+  },
+  paymentSubText: {
+    fontSize: 12,
+    color: homeScreenTheme.secondary,
+    marginTop: 4,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  pageButton: {
+    padding: 8,
+    backgroundColor: homeScreenTheme.primary,
+    borderRadius: 8,
+  },
+  disabledButton: {
+    backgroundColor: globalStyles.COLORS.gray,
+  },
+  pageButtonText: {
+    fontSize: 14,
+    color: homeScreenTheme.white,
+  },
+  pageInfo: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+    textAlign: 'center',
+    marginVertical: 16,
   },
 });
 
-export default LoanScreen;
+export default LoanPaymentsScreen;
+</DOCUMENT>
+
+c:/AutFinanceBank/src/screens/LoansScreen.js
+<DOCUMENT>
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useQuery, useQueryClient } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { getUserLoans } from '../services/loanService';
+import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
+
+const LoansScreen = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
+  const queryClient = useQueryClient();
+
+  // State for pagination and sorting
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [status, setStatus] = useState('');
+  const [sortBy, setSortBy] = useState('CreatedAt');
+  const [order, setOrder] = useState('desc');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const [modalType, setModalType] = useState('');
+
+  // Fetch loans
+  const { data, isLoading, error: fetchError, refetch } = useQuery(
+    ['userLoans', page, perPage, status, sortBy, order],
+    () => getUserLoans({ page, per_page: perPage, status, sort_by: sortBy, order }),
+    { enabled: !!user?.access_token }
+  );
+
+  const openSortModal = (type) => {
+    setModalType(type);
+    if (type === 'sortBy') setSortModalVisible(true);
+    else if (type === 'order') setOrderModalVisible(true);
+    else if (type === 'status') setStatusModalVisible(true);
+  };
+
+  const handleSortSelect = (value) => {
+    setSortBy(value);
+    setSortModalVisible(false);
+  };
+
+  const handleOrderSelect = (value) => {
+    setOrder(value);
+    setOrderModalVisible(false);
+  };
+
+  const handleStatusSelect = (value) => {
+    setStatus(value);
+    setStatusModalVisible(false);
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to view your loans</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Loans</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ApplyLoan')}>
+          <Icon name="add" size={24} color={homeScreenTheme.white} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.filters}>
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Sort By:</Text>
+          <TouchableOpacity style={styles.dropdown} onPress={() => openSortModal('sortBy')}>
+            <Text style={styles.dropdownText}>{sortBy}</Text>
+            <Icon name="arrow-drop-down" size={20} color={homeScreenTheme.black} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Order:</Text>
+          <TouchableOpacity style={styles.dropdown} onPress={() => openSortModal('order')}>
+            <Text style={styles.dropdownText}>{order === 'asc' ? 'Ascending' : 'Descending'}</Text>
+            <Icon name="arrow-drop-down" size={20} color={homeScreenTheme.black} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Status:</Text>
+          <TouchableOpacity style={styles.dropdown} onPress={() => openSortModal('status')}>
+            <Text style={styles.dropdownText}>{status || 'All'}</Text>
+            <Icon name="arrow-drop-down" size={20} color={homeScreenTheme.black} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+      ) : fetchError ? (
+        <Text style={styles.errorText}>{fetchError.message}</Text>
+      ) : !data?.data?.items || data.data.items.length === 0 ? (
+        <Text style={styles.noDataText}>No loans available</Text>
+      ) : (
+        <>
+          <FlatList
+            data={data.data.items}
+            keyExtractor={(item) => item.LoanID.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.loanItem}>
+                <View style={styles.loanDetails}>
+                  <Text style={styles.loanText}>Loan ID: {item.LoanID}</Text>
+                  <Text style={styles.loanSubText}>Amount: {item.LoanAmount}</Text>
+                  <Text style={styles.loanSubText}>Due: {item.DueDate}</Text>
+                  <Text style={styles.loanSubText}>Status: {item.Status}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('LoanPayments', { loanId: item.LoanID })}
+                >
+                  <Icon name="payment" size={20} color={homeScreenTheme.primary} />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+          <View style={styles.pagination}>
+            <TouchableOpacity
+              disabled={page === 1}
+              onPress={() => setPage(page - 1)}
+              style={[styles.pageButton, page === 1 && styles.disabledButton]}
+            >
+              <Text style={styles.pageButtonText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageInfo}>
+              Page {data.page} of {data.total_pages}
+            </Text>
+            <TouchableOpacity
+              disabled={page === data.total_pages}
+              onPress={() => setPage(page + 1)}
+              style={[styles.pageButton, page === data.total_pages && styles.disabledButton]}
+            >
+              <Text style={styles.pageButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
+      {/* Sort By Modal */}
+      <Modal transparent visible={sortModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Sort By</Text>
+            {['CreatedAt', 'LoanAmount', 'DueDate', 'Status'].map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={styles.dropdownOption}
+                onPress={() => handleSortSelect(option)}
+              >
+                <Text style={styles.dropdownOptionText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={() => setSortModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Order Modal */}
+      <Modal transparent visible={orderModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Order</Text>
+            {['asc', 'desc'].map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={styles.dropdownOption}
+                onPress={() => handleOrderSelect(option)}
+              >
+                <Text style={styles.dropdownOptionText}>{option === 'asc' ? 'Ascending' : 'Descending'}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={() => setOrderModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Status Modal */}
+      <Modal transparent visible={statusModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Status</Text>
+            {['', 'Active', 'Closed', 'Pending'].map((option) => (
+              <TouchableOpacity
+                key={option || 'All'}
+                style={styles.dropdownOption}
+                onPress={() => handleStatusSelect(option)}
+              >
+                <Text style={styles.dropdownOptionText}>{option || 'All'}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={() => setStatusModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  filters: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  filterItem: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  filterLabel: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+    marginBottom: 4,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 8,
+    backgroundColor: homeScreenTheme.white,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+  },
+  dropdownOption: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: globalStyles.COLORS.gray,
+    width: '100%',
+    alignItems: 'center',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  loanItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  loanDetails: {
+    flex: 1,
+  },
+  loanText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: homeScreenTheme.black,
+  },
+  loanSubText: {
+    fontSize: 12,
+    color: homeScreenTheme.secondary,
+    marginTop: 4,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  pageButton: {
+    padding: 8,
+    backgroundColor: homeScreenTheme.primary,
+    borderRadius: 8,
+  },
+  disabledButton: {
+    backgroundColor: globalStyles.COLORS.gray,
+  },
+  pageButtonText: {
+    fontSize: 14,
+    color: homeScreenTheme.white,
+  },
+  pageInfo: {
+    fontSize: 14,
+    color: homeScreenTheme.black,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+    marginBottom: 12,
+  },
+  modalButtonCancel: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: globalStyles.COLORS.gray,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+});
+
+export default LoansScreen;
 </DOCUMENT>
 
 c:/AutFinanceBank/src/screens/LoginScreen.js
@@ -2209,28 +3765,421 @@ export default OnboardingScreen;
 
 c:/AutFinanceBank/src/screens/ProfileScreen.js
 <DOCUMENT>
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../context/AuthContext';
+import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ProfileScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>Profile Screen</Text>
-  </View>
+const ProfileScreen = () => {
+  const navigation = useNavigation();
+  const { user, logout } = useContext(AuthContext);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('accessToken');
+      logout();
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    } catch (error) {
+      console.error('ProfileScreen: Error during logout:', error);
+    }
+  };
+
+  const showLogoutModal = () => {
+    setLogoutModalVisible(true);
+  };
+
+  const confirmLogout = () => {
+    setLogoutModalVisible(false);
+    handleLogout();
+  };
+
+  const cancelLogout = () => {
+    setLogoutModalVisible(false);
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to view your profile</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.userContainer}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{user?.FirstName?.[0]?.toUpperCase() || 'U'}</Text>
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.name}>{user?.FirstName || 'User'}</Text>
+            <Text style={styles.username}>@{user?.Username || 'user'}</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('SettingsTab')}>
+            <Icon name="edit" size={20} color={homeScreenTheme.white} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.menuContainer}>
+        <MenuItem
+          icon="settings"
+          title="Settings"
+          subtitle="Make changes to your account"
+          onPress={() => navigation.navigate('SettingsTab')}
+          showWarning
+        />
+        <MenuItem
+          icon="send"
+          title="Send Money"
+          subtitle="Manage your account"
+          onPress={() => navigation.navigate('Send')}
+        />
+        <MenuItem
+          icon="history"
+          title="Transactions"
+          subtitle="Manage your device security"
+          onPress={() => navigation.navigate('Transactions')}
+        />
+        <MenuItem
+          icon="people"
+          title="Recipient Screen"
+          subtitle="Further secure your account for safety"
+          onPress={() => navigation.navigate('RecipientScreen')}
+        />
+        <MenuItem
+          icon="logout"
+          title="Log out"
+          subtitle="Further secure your account for safety"
+          onPress={showLogoutModal}
+        />
+      </View>
+
+      <View style={styles.moreContainer}>
+        <Text style={styles.sectionTitle}>MORE</Text>
+        <MenuItem
+          icon="help"
+          title="Help & Support"
+          onPress={() => navigation.navigate('HelpSupport')}
+        />
+        <MenuItem
+          icon="info"
+          title="About App"
+          onPress={() => navigation.navigate('AboutApp')}
+        />
+      </View>
+
+      <Modal
+        transparent
+        visible={logoutModalVisible}
+        animationType="fade"
+        onRequestClose={cancelLogout}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirm Logout</Text>
+            <Text style={styles.modalMessage}>Are you sure you want to log out?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButtonCancel} onPress={cancelLogout}>
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonConfirm} onPress={confirmLogout}>
+                <Text style={styles.modalButtonTextConfirm}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+};
+
+const MenuItem = ({ icon, title, subtitle, onPress, showWarning }) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <View style={styles.menuItemLeft}>
+      <Icon name={icon} size={24} color={homeScreenTheme.primary} style={styles.menuIcon} />
+      <View style={styles.menuTextContainer}>
+        <Text style={styles.menuTitle}>{title}</Text>
+        {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
+      </View>
+    </View>
+    <View style={styles.menuItemRight}>
+      {showWarning && <Icon name="warning" size={20} color={homeScreenTheme.debit} />}
+      <Icon name="chevron-right" size={24} color={homeScreenTheme.secondary} />
+    </View>
+  </TouchableOpacity>
 );
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f06292', // Pink like in the image
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  username: {
+    fontSize: 14,
+    color: homeScreenTheme.white,
+    marginTop: 4,
+  },
+  menuContainer: {
+    marginTop: 16,
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    paddingVertical: 8,
+  },
+  moreContainer: {
+    marginTop: 16,
+    marginHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: homeScreenTheme.secondary,
+    marginBottom: 12,
+    marginLeft: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: globalStyles.COLORS.gray,
+  },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuIcon: {
+    marginRight: 12,
+  },
+  menuTextContainer: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: homeScreenTheme.black,
+  },
+  menuSubtitle: {
+    fontSize: 12,
+    color: homeScreenTheme.secondary,
+    marginTop: 4,
+  },
+  menuItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: homeScreenTheme.white,
+    borderRadius: 12,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: homeScreenTheme.black,
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: homeScreenTheme.black,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButtonCancel: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: globalStyles.COLORS.gray,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  modalButtonConfirm: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: homeScreenTheme.primary,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  modalButtonTextCancel: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+  modalButtonTextConfirm: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+});
 
 export default ProfileScreen;
 </DOCUMENT>
 
 c:/AutFinanceBank/src/screens/QRCodeScreen.js
 <DOCUMENT>
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+import { getUserDetails } from '../services/userService';
 
-const QRCodeScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>QR Code Screen</Text>
-  </View>
-);
+const formatUserDataForQR = (userData) => {
+  return (
+    `Name: ${userData.FirstName} ${userData.LastName}\n` +
+    `Username: ${userData.Username}\n` +
+    `Email: ${userData.Email}\n` +
+    `CNIC: ${userData.CNIC}\n` +
+    `Bio: Passionate mobile banking user.\n` +
+    `Link: https://bmscpp.netlify.app/`
+  );
+};
+
+const QRCodeScreen = () => {
+  const [userData, setUserData] = useState(null);
+  const [qrValue, setQrValue] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const data = await getUserDetails();
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid data');
+        }
+        setUserData(data);
+        const formattedData = formatUserDataForQR(data);
+        setQrValue(formattedData);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        Alert.alert('Error', 'Failed to fetch user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Your Unique QR Code</Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : userData ? (
+        <>
+          <View style={styles.userInfo}>
+            <Text style={styles.text}>Name: {userData.FirstName} {userData.LastName}</Text>
+            <Text style={styles.text}>Username: {userData.Username}</Text>
+            <Text style={styles.text}>Email: {userData.Email}</Text>
+            <Text style={styles.text}>CNIC: {userData.CNIC}</Text>
+            <Text style={styles.text}>Bio: Passionate mobile banking user.</Text>
+            <Text style={styles.text}>Link: https://bmscpp.netlify.app/</Text>
+          </View>
+          <View style={styles.qrContainer}>
+            <QRCode
+              value={qrValue}
+              size={200}
+              color="black"
+              backgroundColor="white"
+            />
+          </View>
+        </>
+      ) : (
+        <Text>Something went wrong.</Text>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  userInfo: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  qrContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+});
 
 export default QRCodeScreen;
 </DOCUMENT>
@@ -2243,8 +4192,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as recipientStorage from '../services/recipientStorage';
 import globalStyles from '../styles/globalStyles';
-import {getUserDetails} from '../services/userService'
+import {getUserDetails} from '../services/userService';
 const { COLORS } = globalStyles;
+
 
 const RecipientScreen = ({ navigation }) => {
   const [recipients, setRecipients] = useState([]);
@@ -2254,35 +4204,40 @@ const RecipientScreen = ({ navigation }) => {
   const [sortByNameAsc, setSortByNameAsc] = useState(true); // true for ascending, false for descending
 
   useEffect(() => {
-    const loadRecipients = async () => {
-      console.log('RecipientScreen: Loading recipients for UserID:', 6);
-      if (!recipientStorage.setUserId || !recipientStorage.getRecipients) {
-        console.error('RecipientScreen: recipientStorage module is invalid');
-        setRecipientsLoading(false);
-        setRecipientsError('Failed to load recipient storage module');
-        return;
-      }
-
+    const loadUserAndRecipients = async () => {
       try {
         setRecipientsLoading(true);
         setRecipientsError(null);
-        await recipientStorage.setUserId(6);
-        const loadedRecipients = await recipientStorage.getRecipients(6);
+  
+        const user = await getUserDetails();
+        const userId = user?.UserID;
+  
+        if (!userId) {
+          throw new Error('UserID not found in user details');
+        }
+  
+        console.log('RecipientScreen: Loading recipients for UserID:', userId);
+  
+        // Set user ID and generate mock recipients
+        await recipientStorage.setUserId(userId);
+        await recipientStorage.saveMockRecipients(userId);
+  
+        const loadedRecipients = await recipientStorage.getRecipients(userId);
         setRecipients(loadedRecipients);
-        console.log('RecipientScreen: Loaded', loadedRecipients.length, 'recipients');
-
-        const data = await AsyncStorage.getItem('@recipients:6');
+  
+        const data = await AsyncStorage.getItem(`@recipients:${userId}`);
         console.log('RecipientScreen: Verified stored data:', data ? JSON.parse(data).length : 0, 'recipients');
       } catch (error) {
-        console.error('RecipientScreen: Error loading recipients:', error.message);
+        console.error('RecipientScreen: Error loading user or recipients:', error.message);
         setRecipientsError(error.message || 'Failed to load recipients');
       } finally {
         setRecipientsLoading(false);
       }
     };
-    loadRecipients();
+  
+    loadUserAndRecipients();
   }, []);
-
+  
   // Filter and sort recipients based on search query and sort order
   const filteredRecipients = useMemo(() => {
     let result = [...recipients];
@@ -2308,15 +4263,21 @@ const RecipientScreen = ({ navigation }) => {
     return result;
   }, [recipients, searchQuery, sortByNameAsc]);
 
-  const response = typeof getUserDetails === 'function' ? getUserDetails() : getUserDetails;
-
-  const id = response?.data?.UserID;
-  if (id) {
-    console.log("UserID:", id);
-    recipientStorage.saveMockRecipients(id);
-  } else {
-    console.error("Failed to get UserID from getUserDetails response.");
-  }
+  (async () => {
+    try {
+      const response = await getUserDetails();
+      const id = response?.UserID;
+  
+      if (id) {
+        console.log("UserID:", id);
+        recipientStorage.saveMockRecipients(id);
+      } else {
+        console.error("Failed to get UserID from getUserDetails response.");
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  })();
   
 
   const renderRecipient = useCallback(
@@ -2853,11 +4814,11 @@ const SendScreen = ({ navigation }) => {
             )}
             <Text style={styles.findFavouritesHeading}>Find Your Favorites</Text>
             <View style={styles.searchBarContainer}>
-              <Icon name="search" size={24} color={COLORS.placeholder} style={styles.searchIcon} />
+              <Icon name="search" size={24} color={COLORS.gray} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Find Favorites"
-                placeholderTextColor={COLORS.placeholder}
+                placeholderTextColor={COLORS.grey}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -2952,6 +4913,7 @@ const SendScreen = ({ navigation }) => {
               placeholder={`Enter recipient ${recipientType}`}
               value={manualRecipient}
               onChangeText={setManualRecipient}
+              placeholderTextColor={COLORS.black}
               autoCapitalize={recipientType === 'email' ? 'none' : 'words'}
             />
             <TextInput
@@ -2959,6 +4921,7 @@ const SendScreen = ({ navigation }) => {
               placeholder="Description (optional)"
               value={description}
               onChangeText={setDescription}
+              placeholderTextColor={COLORS.black}
             />
             {errorMessage && screenState === 'recipientInput' && (
               <Text style={styles.errorText}>{errorMessage}</Text>
@@ -3075,7 +5038,7 @@ const styles = StyleSheet.create({
   },
   sendMoneySubtext: {
     fontSize: 16,
-    color: COLORS.placeholder,
+    color: COLORS.grey,
     marginBottom: 20,
   },
   sendButton: {
@@ -3160,14 +5123,14 @@ const styles = StyleSheet.create({
   },
   recipientSubText: {
     fontSize: 14,
-    color: COLORS.placeholder,
+    color: COLORS.grey,
   },
   navIcon: {
     marginLeft: 12,
   },
   separator: {
     height: 1,
-    backgroundColor: COLORS.gray,
+    backgroundColor: COLORS.white,
     marginVertical: 4,
   },
   loadingText: {
@@ -3633,19 +5596,21 @@ const TransactionsScreen = () => {
   };
 
   const renderTransaction = ({ item }) => {
-    const isDeposit = !!item.DepositID;
+    const isDeposit = item.TransactionType === 'Deposit';
     const transactionType = isDeposit ? 'Deposit' : 'Transfer';
-    const transactionId = item.DepositID || item.TransferID;
-
+    const transactionId = item.TransactionID;  // Using TransactionID
+  
     return (
       <View style={styles.transaction}>
         <Text style={[styles.transactionIcon, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
           {isDeposit ? '↓' : '↑'}
         </Text>
         <View style={styles.transactionDetails}>
-          <Text style={styles.transactionDescription}>{item.Description || transactionType}</Text>
+          <Text style={styles.transactionDescription}>
+            {item.Description || transactionType}
+          </Text>
           <Text style={styles.transactionDate}>
-            {new Date(item.Timestamp).toLocaleString()}
+            {new Date(item.CreatedAt).toLocaleString()}
           </Text>
         </View>
         <Text style={[styles.transactionAmount, { color: isDeposit ? '#2ecc71' : '#e74c3c' }]}>
@@ -3654,6 +5619,7 @@ const TransactionsScreen = () => {
       </View>
     );
   };
+  
 
   if (!user) {
     return (
@@ -3677,7 +5643,11 @@ const TransactionsScreen = () => {
           <FlatList
             data={transactions?.data?.items || []}
             renderItem={renderTransaction}
-            keyExtractor={(item) => (item.DepositID || item.TransferID).toString()}
+            keyExtractor={(item, index) => {
+  const id = item?.DepositID ?? item?.TransferID;
+  return id != null ? id.toString() : index.toString();
+}}
+
             onEndReached={() => transactions?.total_pages > page && setPage(page + 1)}
             onEndReachedThreshold={0.5}
           />
@@ -3778,15 +5748,195 @@ export default WelcomeScreen;
 
 c:/AutFinanceBank/src/screens/WithdrawScreen.js
 <DOCUMENT>
-// screens/BillsScreen.js
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useMutation } from 'react-query';
+import { AuthContext } from '../context/AuthContext';
+import { withdraw } from '../services/withdrawalService';
+import globalStyles from '../styles/globalStyles';
+import { homeScreenTheme } from '../styles/homeScreenTheme';
 
-const WithdrawScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text>Withdraw Screen</Text>
-  </View>
-);
+const WithdrawScreen = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
+
+  // State for form
+  const [withdrawData, setWithdrawData] = useState({ CardNumber: '', Pin: '', Amount: '' });
+  const [displayCardNumber, setDisplayCardNumber] = useState(''); // For formatted card number display
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Function to format card number
+  const formatCardNumber = (text) => {
+    const cleaned = text.replace(/\D/g, '');
+    const formatted = cleaned
+      .match(/.{1,4}/g)
+      ?.join('-') || cleaned;
+    return formatted;
+  };
+
+  const handleCardNumberChange = (text) => {
+    const rawNumber = text.replace(/\D/g, '').slice(0, 16);
+    setWithdrawData({ ...withdrawData, CardNumber: rawNumber });
+    const formatted = formatCardNumber(rawNumber);
+    setDisplayCardNumber(formatted);
+  };
+
+  // Mutation for withdrawal
+  const withdrawMutation = useMutation(withdraw, {
+    onSuccess: (data) => {
+      setSuccessMessage(data.message || 'Withdrawal successful!');
+      setError(null);
+      setWithdrawData({ CardNumber: '', Pin: '', Amount: '' });
+      setDisplayCardNumber('');
+    },
+    onError: (error) => {
+      setError(error.message || 'An error occurred during withdrawal.');
+      setSuccessMessage(null);
+    },
+  });
+
+  const handleWithdraw = () => {
+    setError(null);
+    setSuccessMessage(null);
+    withdrawMutation.mutate(withdrawData);
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={globalStyles.textXLargeBlack}>Please log in to withdraw funds</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={homeScreenTheme.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Withdraw</Text>
+        <View style={{ width: 24 }} /> {/* Spacer */}
+      </View>
+
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Card Number (16 digits)"
+          value={displayCardNumber}
+          onChangeText={handleCardNumberChange}
+          keyboardType="numeric"
+          maxLength={19} // 16 digits + 3 hyphens
+          placeholderTextColor={globalStyles.COLORS.black}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Pin (4 digits)"
+          value={withdrawData.Pin}
+          onChangeText={(text) => setWithdrawData({ ...withdrawData, Pin: text })}
+          keyboardType="numeric"
+          maxLength={4}
+          placeholderTextColor={globalStyles.COLORS.black}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Amount"
+          value={withdrawData.Amount}
+          onChangeText={(text) => setWithdrawData({ ...withdrawData, Amount: text })}
+          keyboardType="numeric"
+          placeholderTextColor={globalStyles.COLORS.black}
+        />
+
+        {withdrawMutation.isLoading ? (
+          <ActivityIndicator size="large" color={homeScreenTheme.primary} style={styles.loader} />
+        ) : (
+          <>
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleWithdraw}
+              disabled={withdrawMutation.isLoading}
+            >
+              <Text style={styles.submitButtonText}>Withdraw</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: homeScreenTheme.background,
+  },
+  header: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    paddingTop: 40,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: homeScreenTheme.white,
+  },
+  formContainer: {
+    padding: 16,
+    flex: 1,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: globalStyles.COLORS.gray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: globalStyles.COLORS.white,
+  },
+  loader: {
+    marginVertical: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: homeScreenTheme.debit,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  successText: {
+    fontSize: 14,
+    color: homeScreenTheme.primary,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  submitButton: {
+    backgroundColor: homeScreenTheme.primary,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    color: homeScreenTheme.white,
+    fontWeight: '600',
+  },
+});
 
 export default WithdrawScreen;
 </DOCUMENT>
@@ -5033,6 +7183,103 @@ api.interceptors.response.use(
 export default api;
 </DOCUMENT>
 
+c:/AutFinanceBank/src/services/cardService.js
+<DOCUMENT>
+import api from './api';
+
+const getCards = async ({ page = 1, per_page = 10, sort_by = 'CardID', order = 'asc' } = {}) => {
+  try {
+    console.log('cardService: Fetching cards', { page, per_page, sort_by, order });
+
+    // Validate parameters
+    if (page < 1) throw new Error('Page must be at least 1');
+    if (per_page < 1 || per_page > 100) throw new Error('Per_page must be between 1 and 100');
+    if (!['CardID', 'ExpirationDate', 'Status', 'CardNumber'].includes(sort_by)) {
+      throw new Error('Sort_by must be one of: CardID, ExpirationDate, Status, CardNumber');
+    }
+    if (!['asc', 'desc'].includes(order)) throw new Error('Order must be "asc" or "desc"');
+
+    const params = { page, per_page, sort_by, order };
+    const response = await api.get('/api/v1/users/cards', { params });
+    console.log('cardService: Cards fetched successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('cardService: Error fetching cards:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to fetch cards');
+  }
+};
+
+const createCard = async ({ CardNumber, Pin, ExpirationDate }) => {
+  try {
+    console.log('cardService: Creating card', { CardNumber, Pin, ExpirationDate });
+
+    // Validate inputs
+    if (!CardNumber || CardNumber.length !== 16 || !/^\d+$/.test(CardNumber)) {
+      throw new Error('CardNumber must be a 16-digit number');
+    }
+    if (!Pin || Pin.length !== 4 || !/^\d+$/.test(Pin)) {
+      throw new Error('Pin must be a 4-digit number');
+    }
+    if (!ExpirationDate || !/^\d{4}-\d{2}-\d{2}$/.test(ExpirationDate)) {
+      throw new Error('ExpirationDate must be in YYYY-MM-DD format');
+    }
+
+    const requestBody = { CardNumber, Pin, ExpirationDate };
+    const response = await api.post('/api/v1/users/cards', requestBody);
+    console.log('cardService: Card created successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('cardService: Error creating card:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to create card');
+  }
+};
+
+const updateCard = async (card_id, { Pin, Status }) => {
+  try {
+    console.log('cardService: Updating card', { card_id, Pin, Status });
+
+    // Validate inputs
+    if (!card_id || !Number.isInteger(card_id) || card_id < 1) {
+      throw new Error('Card ID must be a positive integer');
+    }
+    if (Pin && (Pin.length !== 4 || !/^\d+$/.test(Pin))) {
+      throw new Error('Pin must be a 4-digit number');
+    }
+    if (Status && typeof Status !== 'string') {
+      throw new Error('Status must be a string');
+    }
+
+    const requestBody = { Pin, Status };
+    const response = await api.put(`/api/v1/users/cards/${card_id}`, requestBody);
+    console.log('cardService: Card updated successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('cardService: Error updating card:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to update card');
+  }
+};
+
+const deleteCard = async (card_id) => {
+  try {
+    console.log('cardService: Deleting card', { card_id });
+
+    // Validate input
+    if (!card_id || !Number.isInteger(card_id) || card_id < 1) {
+      throw new Error('Card ID must be a positive integer');
+    }
+
+    const response = await api.delete(`/api/v1/users/cards/${card_id}`);
+    console.log('cardService: Card deleted successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('cardService: Error deleting card:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to delete card');
+  }
+};
+
+export { getCards, createCard, updateCard, deleteCard };
+</DOCUMENT>
+
 c:/AutFinanceBank/src/services/cloudinaryService.js
 <DOCUMENT>
 // cloudinaryService.js
@@ -5104,24 +7351,81 @@ c:/AutFinanceBank/src/services/loanService.js
 <DOCUMENT>
 import api from './api';
 
-export const applyForLoan = async (loanData) => {
-  return api.post('/users/loans/apply', loanData);
+// Apply for a loan
+export const applyForLoan = async ({ LoanTypeID, LoanAmount, LoanDurationMonths, DueDate }) => {
+  try {
+    console.log('loanService: Applying for loan', { LoanTypeID, LoanAmount, LoanDurationMonths, DueDate });
+    const response = await api.post('/api/v1/users/loans/apply', {
+      LoanTypeID,
+      LoanAmount,
+      LoanDurationMonths,
+      DueDate,
+    });
+    console.log('loanService: Loan application successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('loanService: Error applying for loan:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
 };
 
+// List loan types
 export const getLoanTypes = async () => {
-  return api.get('/users/loans/types');
+  try {
+    console.log('loanService: Fetching loan types');
+    const response = await api.get('/api/v1/users/loans/types');
+    console.log('loanService: Loan types fetched successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('loanService: Error fetching loan types:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
 };
 
-export const makeLoanPayment = async (paymentData) => {
-  return api.post('/users/loans/payments', paymentData);
+// Record a loan payment
+export const recordLoanPayment = async ({ LoanID, PaymentAmount }) => {
+  try {
+    console.log('loanService: Recording loan payment', { LoanID, PaymentAmount });
+    const response = await api.post('/api/v1/users/loans/payments', {
+      LoanID,
+      PaymentAmount,
+    });
+    console.log('loanService: Loan payment recorded successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('loanService: Error recording loan payment:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
 };
 
-export const getLoans = async (params) => {
-  return api.get('/users/loans', { params });
+// List user loans
+export const getUserLoans = async ({ page = 1, per_page = 10, status, sort_by = 'CreatedAt', order = 'desc' }) => {
+  try {
+    console.log('loanService: Fetching user loans', { page, per_page, status, sort_by, order });
+    const response = await api.get('/api/v1/users/loans', {
+      params: { page, per_page, status, sort_by, order },
+    });
+    console.log('loanService: User loans fetched successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('loanService: Error fetching user loans:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
 };
 
-export const getLoanPayments = async (loanId, params) => {
-  return api.get(`/users/loans/${loanId}/payments`, { params });
+// List loan payments
+export const getLoanPayments = async ({ loan_id, page = 1, per_page = 10 }) => {
+  try {
+    console.log('loanService: Fetching loan payments', { loan_id, page, per_page });
+    const response = await api.get(`/api/v1/users/loans/${loan_id}/payments`, {
+      params: { page, per_page },
+    });
+    console.log('loanService: Loan payments fetched successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('loanService: Error fetching loan payments:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
 };
 </DOCUMENT>
 
@@ -5685,7 +7989,7 @@ const getLastTenTransactions = async () => {
     const response = await api.get('/api/v1/users/transactions', {
       params: {
         page: 1,
-        per_page: 10,
+        per_page: 30,
         sort_by: 'Timestamp',
         order: 'desc',
       },
@@ -5840,14 +8144,33 @@ export const registerUser = async (userData) => {
 export const loginUser = async (loginId, password) => {
   return api.post('/users/login', { login_id: loginId, Password: password });
 };
+export const getUserAnalyticsSummary = async () => {
+  try {
+    console.log('analyticsService: Fetching user analytics summary');
+    const response = await api.get('/api/v1/users/analytics/summary');
+    console.log('analyticsService: User analytics summary fetched successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('analyticsService: Error fetching user analytics summary:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
 </DOCUMENT>
 
 c:/AutFinanceBank/src/services/withdrawalService.js
 <DOCUMENT>
 import api from './api';
 
-export const createWithdrawal = async (withdrawalData) => {
-  return api.post('/atm/withdraw', withdrawalData);
+export const withdraw = async ({ CardNumber, Pin, Amount }) => {
+  try {
+    console.log('atmService: Withdrawing funds', { CardNumber, Pin, Amount });
+    const response = await api.post('/api/v1/atm/withdraw', { CardNumber, Pin, Amount });
+    console.log('atmService: Withdrawal successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('atmService: Error withdrawing funds:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
 };
 </DOCUMENT>
 

@@ -102,3 +102,28 @@ export const getUserAnalyticsSummary = async () => {
     throw error.response?.data || error;
   }
 };
+
+
+export const updateUserProfile = async (userData) => {
+  try {
+    console.log('userService: Updating user profile', userData);
+    const response = await api.put('/api/v1/users/me', userData);
+    console.log('userService: User profile updated successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('userService: Error updating user profile:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
+
+export const updateUserPassword = async (passwordData) => {
+  try {
+    console.log('userService: Updating user password', passwordData);
+    const response = await api.put('/api/v1/users/me/password', passwordData);
+    console.log('userService: User password updated successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('userService: Error updating user password:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
