@@ -17,7 +17,9 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SendScreen from '../screens/SendScreen';
 import DepositScreen from '../screens/DepositScreen';
-import LoanScreen from '../screens/LoanScreen';
+import LoansScreen from '../screens/LoansScreen';
+import ApplyLoanScreen from '../screens/ApplyLoanScreen';
+import LoanPaymentsScreen from '../screens/LoanPaymentsScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import WithdrawScreen from '../screens/WithdrawScreen';
 import CardsScreen from '../screens/CardsScreen';
@@ -193,7 +195,9 @@ const AppNavigator = () => {
             />
             <Stack.Screen name="Send" component={SendScreen} />
             <Stack.Screen name="Deposit" component={DepositScreen} />
-            <Stack.Screen name="Loan" component={LoanScreen} />
+            <Stack.Screen name="Loan" component={LoansScreen} />
+  <Stack.Screen name="ApplyLoan" component={ApplyLoanScreen} />
+  <Stack.Screen name="LoanPayments" component={LoanPaymentsScreen} />
             <Stack.Screen name="Transactions" component={TransactionsScreen} />
             <Stack.Screen name="Withdraw" component={WithdrawScreen} />
             <Stack.Screen name="Cards" component={CardsScreen} />

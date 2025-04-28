@@ -91,3 +91,14 @@ export const registerUser = async (userData) => {
 export const loginUser = async (loginId, password) => {
   return api.post('/users/login', { login_id: loginId, Password: password });
 };
+export const getUserAnalyticsSummary = async () => {
+  try {
+    console.log('analyticsService: Fetching user analytics summary');
+    const response = await api.get('/api/v1/users/analytics/summary');
+    console.log('analyticsService: User analytics summary fetched successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('analyticsService: Error fetching user analytics summary:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
